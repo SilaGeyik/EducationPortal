@@ -1,0 +1,27 @@
+﻿@model IEnumerable<EducationPortal.Web.Models.Enrollment>
+
+@{
+	ViewData["Title"] = "Kayıtlı Dersler";
+}
+
+<h2 class = "mb-4 text-center text-primary">Öğrenci - Ders Listesi</h2>
+
+<table class= action="table table-stripped table-bordered text-center">
+	<thead class= "table-dark">
+		<tr>
+			<th>Öğrenci Adı</th>
+			<th>Ders Adı</th>
+			<th>Kayıt Tarihi</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach(var e in Model)
+		{
+			<tr>
+			<td>@e.User.FullName</td>
+			<td>@e.Course.Title</td>
+			<td>@e.EnrollmentDate.ToShortDateString()</td>
+		</tr>
+		}
+	</tbody>
+</table>

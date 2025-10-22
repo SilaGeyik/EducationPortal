@@ -1,23 +1,21 @@
-﻿@{
-	Layout = "_Layout";
-	ViewData["Title"] = "Öğrenciler";
-}
+﻿@model List<EducationPortal.Web.Models.User>
 
-<h1 class ="h3 mb-4 text-gray-800">Öğrenci Listesi</h1>
+	<h2>Öğrenci Listesi</h2>
 
-<table class= "table table-striped">
-	<thead>
-		<tr>
-			<th>Ad Soyad</th>
-			<th>Bölüm</th>
-			<th>E-Posta</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td>Sıla Geyik</td>
-			<td>Bilgisayar Programcılığı</td>
-			<td>sila@eduportal.com</td>
-		</tr>
+	<table class = "table table-striped">
+		<thead>
+			<tr>
+				<th>Ad Soyad</th>
+				<th>E-posta</th>
+			</tr>
+		</thead>
+		<tbody>
+		@foreach(var student in Model)
+		{
+			<tr>
+				<td>@student.FullName</td>
+				<td>@student.Email</td>
+			</tr>
+		}
 	</tbody>
-</table>
+	</table>

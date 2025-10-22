@@ -1,33 +1,22 @@
-﻿@{
-	Layout = "_Layout";
-	ViewData["Title"] = "Dersler";
-}
+﻿@model List<EducationPortal.Web.Models.Course>
 
-<h1 class ="h3 mb-4 text-gray-800">Ders Listesi</h1>
-
-<table class = "table table-bordered">
-	<thead class="thead-light">
-		<tr>
-			<th>Ders Adı</th>
-			<th>Kredi</th>
-			<th>Öğretmen</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td>Programlama Temelleri</td>
-			<td>4</td>
-			<td>Abdülkadir Koçer</td>
-		</tr>
-		<tr>
-			<td>Veritabanı Yönetimi</td>
-			<td>3</td>
-			<td>Hasan Özalp</td>
-		</tr>
-		<tr>
-			<td>Grafik Animasyon</td>
-			<td>2</td>
-			<td>Erokan Canbazoğlu</td>
-		</tr>
-	</tbody>
-</table>
+	<h2>Ders Listesi</h2>
+	<table class= "table table-striped">
+		<thead>
+			<tr>
+				<th>Ders Adı</th>
+				<th>Açıklama</th>
+				<th>Eğitmen</th>
+			</tr>
+		</thead>
+		<tbody>
+		@foreach(var course in Model)
+		{
+			<tr>
+				<td>@course.Title</td>
+				<td>@course.Description</td>
+				<td>@course.Instructor</td>
+			</tr>
+		}
+		</tbody>
+	</table>
