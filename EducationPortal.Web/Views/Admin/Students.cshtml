@@ -1,0 +1,27 @@
+﻿@model IEnumerable<EducationPortal.Web.Models.User>
+
+
+	<div class="container mt-4">
+		<h2 class="text-primary mb-3">Öğrenciler</h2>
+		<a href="/Admin/AddStudent" class="btn btn-success mb-3">Yeni Öğrenci Ekle</a>
+
+		<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>Ad Soyad</th>
+					<th>E-Posta</th>
+					<th>Rol</th>
+				</tr>
+			</thead>
+			<tbody>
+			@foreach(var student in Model)
+			{
+				<tr>
+					<td>@student.FullName</td>
+					<td>@student.Email</td>
+					<td>@student.Role</td>
+				</tr>
+			}
+		</tbody>
+		</table>
+	</div>

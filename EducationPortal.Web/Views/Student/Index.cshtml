@@ -1,21 +1,32 @@
 ﻿@model List<EducationPortal.Web.Models.User>
 
-	<h2>Öğrenci Listesi</h2>
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Öğrenci Listesi</h1>
 
-	<table class = "table table-striped">
-		<thead>
-			<tr>
-				<th>Ad Soyad</th>
-				<th>E-posta</th>
-			</tr>
-		</thead>
-		<tbody>
-		@foreach(var student in Model)
-		{
-			<tr>
-				<td>@student.FullName</td>
-				<td>@student.Email</td>
-			</tr>
-		}
-	</tbody>
-	</table>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Kayıtlı Öğrenciler</h6>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Ad Soyad</th>
+                        <th>E-Posta</th>
+                        <th>Rol</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var student in Model)
+                    {
+                        <tr>
+                            <td>@student.FullName</td>
+                            <td>@student.Email</td>
+                            <td>@student.Role</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

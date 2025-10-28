@@ -1,0 +1,41 @@
+﻿@model EducationPortal.Web.Models.Course
+
+<div class="container-fluid">
+	<h1 class="h3 mb-4 text-gray-800">Ders Düzenle</h1>
+
+	<div class="card shadow mb-4">
+		<div class="card-body">
+			<form asp-controller="Course" asp-action="Edit" method="post">
+				<input type="hidden" asp-for="CourseId"/>
+
+
+				<div class="form-group mb-3">
+					<label for="Title">Ders Adı</label>
+					<input asp-for="Title" class="form-control" required/>
+				</div>
+
+				<div class="form-group mb-3">
+					<label for="Description">Kredi</label>
+					<input asp-for="Description" type="number" class="form-control" required/>
+				</div>
+
+
+				<div class="form-group mb-3">
+					<label for="Instructor">Kredi</label>
+					<input asp-for="Instructor" class="form-control" required />
+				</div>
+
+				<button type="submit" class="btn btn-primary">
+					<i class="fas fa-save"></i> Kaydet
+				</button>
+				<a asp-controller="Course" asp-action="Index" class="btn btn-secondary">
+					<i class="fas fa-arrow-left"></i>Geri Dön
+				</a>
+
+			</form>
+		</div>
+		@section Scripts{
+			<partial name="_ValidationScriptsPartial"/>
+		}
+	</div>
+</div>

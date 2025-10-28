@@ -1,0 +1,34 @@
+﻿@model EducationPortal.Web.Models.Course
+
+<div class="container-fluid">
+	<h1 class="h3 mb-4 text-gray-800">Yeni Ders Ekle</h1>
+	
+	<div class="card shadow mb-4">
+		<div class="card-body">
+			<form asp-controller="Course" asp-action="Add" method="post">
+				<div class="form-group mb-3">
+					<label for="Title">Ders Adı</label>
+					<input asp-for="Title" class="form-control" placeholder="Ders Adı Girin" required/>
+				</div>
+
+				<div class="form-group mb-3">
+					<label for="Description">Kredi</label>
+					<input asp-for="Description" type="number" class="form-control" placeholder="Ders Kredisi" required/>
+				</div>
+
+				<div class="form-group mb-3">
+					<label for="Instructor">Öğretim Üyesi</label>
+					<input asp-for="Instructor" class="form-control" placeholder="Öğretim Üyesi Adı" required/>
+				</div>
+				
+
+				<button type="submit" class="btn btn-success">
+					<i class="fas fa-plus-circle"></i>Ekle
+				</button>
+				<a asp-controller="Course" asp-action="Index" class="btn btn-secondary">
+					<i class="fas fa-arrow-left"></i>Geri Dön
+				</a>
+			</form>
+		</div>
+	</div>
+</div>

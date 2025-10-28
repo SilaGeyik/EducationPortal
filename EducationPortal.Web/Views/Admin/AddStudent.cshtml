@@ -1,0 +1,24 @@
+﻿@{
+	ViewData["Title"] = "Yeni Öğrenci Ekle";
+}
+
+<div class="container mt-4">
+	<h2 class="text-primary mb-3">Yeni Öğrenci Ekle</h2>
+
+	<form asp-action="AddStudent" method="post">
+		<div class="form-group mb-3">
+			<label>Ad Soyad</label>
+			<input type="text" name="fullName" class="form-control" required />
+		</div>
+		<div class="form-group mb-3">
+			<label>E-Posta</label>
+			<input type="email" name="email" class="form-control" required />
+		</div>
+		<div class="form-group mb-3">
+			<label>Şifre</label>
+			<input type="password" name="password" class="form-control" required />
+		</div>
+		<button type="submit" class="btn btn-primary">Kaydet</button>
+
+	</form>
+</div>

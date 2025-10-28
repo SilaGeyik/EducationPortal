@@ -1,5 +1,6 @@
-﻿using EducationPortal.Web.Data;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using EducationPortal.Web.Data;
+using EducationPortal.Web.Models;
 
 namespace EducationPortal.Web.Controllers
 {
@@ -11,11 +12,17 @@ namespace EducationPortal.Web.Controllers
         {
             _context = context;
         }
+
         public IActionResult Index()
         {
+            // Veritabanındaki tüm öğrencileri çek
             var students = _context.Users
-                                   .Where(u=> u.Role =="student")
-                                   .ToList();
+                .Where(u => u.Role == "Student") // Eğer User tablon öğrencileri tutuyorsa
+                .ToList();
+
+            ViewData["Title"] = "Öğrenciler";
+
+            // ✅ View'e model olarak öğrencileri gönder
             return View(students);
         }
     }
