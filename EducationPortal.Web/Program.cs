@@ -1,5 +1,6 @@
 ﻿using EducationPortal.Web.Data;
 using EducationPortal.Web.Models;
+using EducationPortal.Web.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<EducationContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();//Scoped her http isteğinde 1 adet repository nesnesi oluşturur
 // ✅ Oturum (Session) servisini ekle
 builder.Services.AddSession();
 

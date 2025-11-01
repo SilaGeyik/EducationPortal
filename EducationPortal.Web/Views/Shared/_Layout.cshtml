@@ -24,6 +24,9 @@
 
     <!-- Site özel CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body id="page-top">
@@ -41,29 +44,27 @@
                 <div class="sidebar-brand-text mx-3">Eğitim Portalı</div>
             </a>
 
-            <!-- Divider -->
             <hr class="sidebar-divider my-0" />
 
             <!-- Dashboard -->
-            <li class="nav-item ">
+            <li class="nav-item">
                 <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
 
-            <!-- Divider -->
             <hr class="sidebar-divider" />
 
             <div class="sidebar-heading">
                 İçerikler
             </div>
 
-            <!-- Menu Items -->
+            <!-- Menü Öğeleri -->
             <li class="nav-item">
-                <a class="nav-link" asp-controller="Course" asp-action="Add">
-                    <i class="fas fa-plus"></i>
-                    <span>Yeni Ders Ekle</span>
+                <a class="nav-link" asp-controller="Course" asp-action="Index">
+                    <i class="fas fa-book"></i>
+                    <span>Kurslar</span>
                 </a>
             </li>
 
@@ -81,8 +82,7 @@
                 </a>
             </li>
 
-
-            <hr class="sidebar-divider d-none d-md-block">
+            <hr class="sidebar-divider d-none d-md-block" />
 
             <li class="nav-item">
                 <a class="nav-link" asp-controller="Account" asp-action="Logout">
@@ -106,7 +106,7 @@
                         @ViewData["Title"]
                     </span>
                 </nav>
-                <!-- End of Topbar -->
+
                 <!-- Page Content -->
                 <div class="container-fluid">
                     @RenderBody()
@@ -136,5 +136,42 @@
     <script src="~/templates/js/sb-admin-2.min.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- SweetAlert2 Alert Mesajları -->
+    <script>
+        @if (TempData["Success"] != null)
+        {
+                <text>
+                    Swal.fire({
+                        toast: true,
+                        icon: 'success',
+                        title: '@TempData["Success"]',
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2500,
+                        timerProgressBar: true,
+                        background: '#f0fff4',
+                        color: '#155724'
+                    });
+                </text>
+        }
+        else if (TempData["Error"] != null)
+        {
+                <text>
+                    Swal.fire({
+                        toast: true,
+                        icon: 'error',
+                        title: '@TempData["Error"]',
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        background: '#fef2f2',
+                        color: '#7f1d1d'
+                    });
+                </text>
+        }
+    </script>
 </body>
 </html>
+

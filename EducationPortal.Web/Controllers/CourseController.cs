@@ -1,82 +1,48 @@
-﻿using EducationPortal.Web.Data;
-using EducationPortal.Web.Models;
+﻿using EducationPortal.Web.Models;
+using EducationPortal.Web.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationPortal.Web.Controllers
 {
     public class CourseController : Controller
     {
-        private readonly EducationContext _context;
+        private readonly ICourseRepository _repository;
 
-        public CourseController(EducationContext context)
+        public CourseController(ICourseRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
+
         public IActionResult Index()
         {
-            var courses = _context.Courses.ToList();//veritabanındaki tüm dersleri çeker
-            return View(courses); //view liste gönderme
+            var courses = _repository.GetAll();
+            return View(courses);
         }
 
-
-    
-    [HttpGet]
-        public IActionResult Add()
-        {
-            ViewData["Title"] = "Yeni Ders Ekle";
-            return View();
-        }
+        [HttpGet]
+        public IActionResult Add() => View();
 
         [HttpPost]
         public IActionResult Add(Course course)
         {
             if (ModelState.IsValid)
             {
-                _context.Courses.Add(course);
-                _context.SaveChanges();
+                _repository.Add(course);
+                _repository.Save();
 
-                // Başarılı ekleme sonrası listeye dön
+                TempData["Success"] = "Kurs başarıyla eklendi!";
                 return RedirectToAction("Index");
             }
 
-            // Model hatalıysa aynı sayfada kal
-            return View(course);
-        }
-        [HttpGet]
-        public IActionResult Delete(int id)
-        {
-            var course = _context.Courses.FirstOrDefault(c => c.CourseId == id);
-            if (course == null)
-            {
-                return NotFound();
-            }
-
-            ViewData["Title"] = "Ders Sil";
+            TempData["Error"] = "Kurs eklenirken bir sorun oldu!";
             return View(course);
         }
 
-        [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
-        {
-            var course = _context.Courses.FirstOrDefault(c => c.CourseId == id);
-            if (course != null)
-            {
-                _context.Courses.Remove(course);
-                _context.SaveChanges();
-            }
-
-            return RedirectToAction("Index");
-        }
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            var course = _context.Courses.FirstOrDefault(c => c.CourseId == id);
-            if (course == null)
-            {
-                return NotFound();
-            }
-
-            ViewData["Title"] = "Ders Düzenle";
+            var course = _repository.GetById(id);
+            if (course == null) return NotFound();
             return View(course);
         }
 
@@ -85,16 +51,33 @@ namespace EducationPortal.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Courses.Update(course);
-                _context.SaveChanges();
+                _repository.Update(course);
+                _repository.Save();
+
+                TempData["Success"] = "Kurs başarıyla güncellendi!";
                 return RedirectToAction("Index");
             }
 
+            TempData["Error"] = "Kurs güncellenirken bir hata meydana geldi!";
             return View(course);
         }
 
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var course = _repository.GetById(id);
+            if (course == null)
+            {
+                TempData["Error"] = "Silinmek istenen kurs bulunamadı!";
+                return RedirectToAction("Index");
+            }
 
+            _repository.Delete(id);
+            _repository.Save();
+
+            TempData["Success"] = "Kurs başarıyla silindi!";
+            return RedirectToAction("Index");
+        }
 
     }
-
 }

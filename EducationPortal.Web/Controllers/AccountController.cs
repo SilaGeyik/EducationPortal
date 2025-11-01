@@ -26,15 +26,15 @@ namespace EducationPortal.Web.Controllers
 
             if (user != null)
             {
-                // ✅ Session’a kullanıcı bilgilerini kaydet
+                //Session’a kullanıcı bilgilerini kaydet
                 HttpContext.Session.SetString("UserName", user.FullName);
                 HttpContext.Session.SetString("UserRole", user.Role);
 
-                // ✅ Dashboard’a yönlendir
+                //Dashboard’a yönlendir
                 return RedirectToAction("Index", "Dashboard");
             }
 
-            // ❌ Hatalıysa
+            //Hatalıysa
             ViewBag.Error = "E-posta veya şifre hatalı!";
             return View();
         }
