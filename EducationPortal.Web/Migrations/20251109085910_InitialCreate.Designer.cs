@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EducationPortal.Web.Migrations
 {
     [DbContext(typeof(EducationContext))]
-    [Migration("20251026201059_SeedAdminUser")]
-    partial class SeedAdminUser
+    [Migration("20251109085910_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,9 +33,11 @@ namespace EducationPortal.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CourseId"));
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("CourseCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Credits")
+                        .HasColumnType("int");
 
                     b.Property<string>("Instructor")
                         .IsRequired()
@@ -47,7 +49,26 @@ namespace EducationPortal.Web.Migrations
 
                     b.HasKey("CourseId");
 
+                    b.HasIndex("CourseCategoryId");
+
                     b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("EducationPortal.Web.Models.CourseCategory", b =>
+                {
+                    b.Property<int>("CourseCategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CourseCategoryId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("CourseCategoryId");
+
+                    b.ToTable("CourseCategories");
                 });
 
             modelBuilder.Entity("EducationPortal.Web.Models.Enrollment", b =>
@@ -115,6 +136,17 @@ namespace EducationPortal.Web.Migrations
                         });
                 });
 
+            modelBuilder.Entity("EducationPortal.Web.Models.Course", b =>
+                {
+                    b.HasOne("EducationPortal.Web.Models.CourseCategory", "CourseCategory")
+                        .WithMany("Courses")
+                        .HasForeignKey("CourseCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CourseCategory");
+                });
+
             modelBuilder.Entity("EducationPortal.Web.Models.Enrollment", b =>
                 {
                     b.HasOne("EducationPortal.Web.Models.Course", "Course")
@@ -132,6 +164,11 @@ namespace EducationPortal.Web.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EducationPortal.Web.Models.CourseCategory", b =>
+                {
+                    b.Navigation("Courses");
                 });
 #pragma warning restore 612, 618
         }

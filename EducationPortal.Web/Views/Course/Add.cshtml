@@ -1,34 +1,37 @@
 ﻿@model EducationPortal.Web.Models.Course
 
-<div class="container-fluid">
-	<h1 class="h3 mb-4 text-gray-800">Yeni Kurs Ekle</h1>
+<form asp-action="Add" method="post">
+    <div class="form-group">
+        <label>Ders Adı</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
 
-	<div class="card shadow mb-4 ">
-		<div class="card-body">
-			<form asp-action="Add" method="post">
-				<div class="form-group">
-					<label for="Title">Ders Adı</label>
-					<input asp-for="Title" class="form-control" placeholder="Ders Adı Girin" required/>
-				</div>
+    <div class="form-group">
+        <label>Kredi</label>
+        <input asp-for="Credits" type="number" class="form-control" />
+        <span asp-validation-for="Credits" class="text-danger"></span>
+    </div>
 
-				<div class=" form-group">
-					<label for="Description">Kredi</label>
-					<input asp-for="Description" class="form-control" placeholder="Ders Kredisi" required/>
-				</div>
+    <div class="form-group">
+        <label>Öğretim Üyesi</label>
+        <input asp-for="Instructor" class="form-control" />
+        <span asp-validation-for="Instructor" class="text-danger"></span>
+    </div>
 
-				<div class="form-group">
-					<label for="Instructor">Öğretim Üyesi</label>
-					<input asp-for="Instructor" class="form-control" placeholder="Öğretim Elemanı Adı Girin" required/>
-				</div>
+    <div class="form-group">
+        <label>Kategori</label>
+        <select asp-for="CourseCategoryId" class="form-control"
+                asp-items="@(ViewBag.Categories)">
+            <option value="">Kategori Seçin</option>
+        </select>
+        <span asp-validation-for="CourseCategoryId" class="text-danger"></span>
+    </div>
 
-				<button type="submit" class="btn btn-success">
-					<i class="fas fa-plus-circle"></i>Ekle
-				</button>
+    <button type="submit" class="btn btn-success">Ekle</button>
+    <a asp-action="Index" class="btn btn-secondary">Geri Dön</a>
+</form>
 
-				<a asp-action="Index" class="btn btn-secondary ml-2">
-					<i class="fas fa-arrow-left"></i>Geri Dön
-				</a>
-			</form>
-		</div>
-	</div>
-</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

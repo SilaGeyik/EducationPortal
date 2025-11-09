@@ -1,83 +1,98 @@
-﻿using EducationPortal.Web.Models;
-using EducationPortal.Web.Repositories;
+﻿using EducationPortal.Web.Data;
+using EducationPortal.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace EducationPortal.Web.Controllers
 {
     public class CourseController : Controller
     {
-        private readonly ICourseRepository _repository;
+        private readonly EducationContext _context;
 
-        public CourseController(ICourseRepository repository)
+        public CourseController(EducationContext context)
         {
-            _repository = repository;
+            _context = context;
         }
 
+        // LIST
         public IActionResult Index()
         {
-            var courses = _repository.GetAll();
+            var courses = _context.Courses
+                .Include(c => c.CourseCategory)
+                .ToList();
+
             return View(courses);
         }
 
+        // ADD PAGE (GET)
         [HttpGet]
-        public IActionResult Add() => View();
+        public IActionResult Add()
+        {
+            ViewBag.Categories = new SelectList(_context.CourseCategories, "CourseCategoryId", "Name");
+            return View();
+        }
 
+        // ADD (POST)
         [HttpPost]
         public IActionResult Add(Course course)
         {
             if (ModelState.IsValid)
             {
-                _repository.Add(course);
-                _repository.Save();
-
+                _context.Courses.Add(course);
+                _context.SaveChanges();
                 TempData["Success"] = "Kurs başarıyla eklendi!";
                 return RedirectToAction("Index");
             }
 
-            TempData["Error"] = "Kurs eklenirken bir sorun oldu!";
+            ViewBag.Categories = new SelectList(_context.CourseCategories, "CourseCategoryId", "Name", course.CourseCategoryId);
+            TempData["Error"] = "Kurs eklenirken bir hata oluştu!";
             return View(course);
         }
 
+        // EDIT PAGE (GET)
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            var course = _repository.GetById(id);
-            if (course == null) return NotFound();
+            var course = _context.Courses.Find(id);
+            if (course == null)
+                return NotFound();
+
+            ViewBag.Categories = new SelectList(_context.CourseCategories, "CourseCategoryId", "Name", course.CourseCategoryId);
             return View(course);
         }
 
+        // EDIT (POST)
         [HttpPost]
         public IActionResult Edit(Course course)
         {
             if (ModelState.IsValid)
             {
-                _repository.Update(course);
-                _repository.Save();
-
+                _context.Courses.Update(course);
+                _context.SaveChanges();
                 TempData["Success"] = "Kurs başarıyla güncellendi!";
                 return RedirectToAction("Index");
             }
 
-            TempData["Error"] = "Kurs güncellenirken bir hata meydana geldi!";
+            ViewBag.Categories = new SelectList(_context.CourseCategories, "CourseCategoryId", "Name", course.CourseCategoryId);
+            TempData["Error"] = "Kurs güncellenirken bir hata oluştu!";
             return View(course);
         }
 
-        [HttpPost]
+        // DELETE
         public IActionResult Delete(int id)
         {
-            var course = _repository.GetById(id);
+            var course = _context.Courses.Find(id);
             if (course == null)
-            {
-                TempData["Error"] = "Silinmek istenen kurs bulunamadı!";
-                return RedirectToAction("Index");
-            }
+                return NotFound();
 
-            _repository.Delete(id);
-            _repository.Save();
+            _context.Courses.Remove(course);
+            _context.SaveChanges();
 
-            TempData["Success"] = "Kurs başarıyla silindi!";
+            TempData["Success"] = "Kurs silindi!";
             return RedirectToAction("Index");
         }
-
     }
 }
+
+

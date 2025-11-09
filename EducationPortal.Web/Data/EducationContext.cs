@@ -14,6 +14,7 @@ namespace EducationPortal.Web.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
+        public DbSet<CourseCategory> CourseCategories { get; set; }
 
         // Veritabanı oluşturulurken başlangıç verileri (Seed Data)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
