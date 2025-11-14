@@ -1,8 +1,10 @@
 ﻿using EducationPortal.Web.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationPortal.Web.Controllers
 {
+    [Authorize(Roles = "admin")]
     public class EnrollmentController : Controller
     {
         private readonly EducationContext _context;

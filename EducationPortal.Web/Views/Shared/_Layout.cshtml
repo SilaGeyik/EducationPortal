@@ -1,7 +1,7 @@
 ﻿@*
     SB Admin 2 teması - ASP.NET Core uyumlu layout
-    wwwroot/templates altındaki dosyalar kullanılır.
 *@
+
 <!DOCTYPE html>
 <html lang="tr">
 
@@ -14,13 +14,13 @@
     <title>@ViewData["Title"] - Eğitim Portalı</title>
 
     <!-- Font Awesome -->
-    <link href="~/templates/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" />
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,700,800,900" rel="stylesheet">
 
     <!-- SB Admin 2 CSS -->
-    <link href="~/templates/css/sb-admin-2.min.css" rel="stylesheet" />
+    <link href="~/css/sb-admin-2.min.css" rel="stylesheet" />
 
     <!-- Site özel CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -91,12 +91,13 @@
                 </a>
             </li>
 
-            <hr class="sidebar-divider d-none d-md-block" />
         </ul>
         <!-- End Sidebar -->
         <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
+
             <div id="content">
+
                 <!-- Topbar -->
                 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
@@ -121,7 +122,9 @@
                     </div>
                 </div>
             </footer>
+
         </div>
+
     </div>
 
     <!-- Scroll to Top -->
@@ -130,48 +133,13 @@
     </a>
 
     <!-- JS Files -->
-    <script src="~/templates/vendor/jquery/jquery.min.js"></script>
-    <script src="~/templates/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="~/templates/vendor/jquery-easing/jquery.easing.min.js"></script>
-    <script src="~/templates/js/sb-admin-2.min.js"></script>
+    <script src="~/vendor/jquery/jquery.min.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="~/js/sb-admin-2.min.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 
-    <!-- SweetAlert2 Alert Mesajları -->
-    <script>
-        @if (TempData["Success"] != null)
-        {
-                <text>
-                    Swal.fire({
-                        toast: true,
-                        icon: 'success',
-                        title: '@TempData["Success"]',
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 2500,
-                        timerProgressBar: true,
-                        background: '#f0fff4',
-                        color: '#155724'
-                    });
-                </text>
-        }
-        else if (TempData["Error"] != null)
-        {
-                <text>
-                    Swal.fire({
-                        toast: true,
-                        icon: 'error',
-                        title: '@TempData["Error"]',
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true,
-                        background: '#fef2f2',
-                        color: '#7f1d1d'
-                    });
-                </text>
-        }
-    </script>
 </body>
-</html>
 
+</html>

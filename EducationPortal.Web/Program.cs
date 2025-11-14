@@ -1,6 +1,7 @@
 ﻿using EducationPortal.Web.Data;
 using EducationPortal.Web.Models;
 using EducationPortal.Web.Repositories;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,13 +10,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<EducationContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<ICourseRepository, CourseRepository>();//Scoped her http isteğinde 1 adet repository nesnesi oluşturur
-// ✅ Oturum (Session) servisini ekle
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+
 builder.Services.AddSession();
+
+// 👉 Eksikti! MUTLAKA eklenmeli
+builder.Services.AddAuthorization();
+
+// 👉 Authentication servisi doğru
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+    });
 
 var app = builder.Build();
 
-// --- Seed işlemi ---
+// --- Seed admin ---
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<EducationContext>();
@@ -27,14 +39,14 @@ using (var scope = app.Services.CreateScope())
         {
             FullName = "Admin Kullanıcı",
             Email = "admin@portal.com",
-            Password = "12345",
+            Password = "123",
             Role = "Admin"
         });
         context.SaveChanges();
     }
 }
 
-// --- Middleware sırası ---
+// --- Middleware ---
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -42,20 +54,19 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// ✅ Statik dosyaları oku (wwwroot altındaki templates vb.)
 app.UseStaticFiles();
 
 app.UseRouting();
 
-// ✅ Session middleware (Authorization'dan ÖNCE olacak!)
 app.UseSession();
 
+// 👉 Sırası doğru! Authentication → Authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
-// ✅ Varsayılan yönlendirme
+// 👉 Default route
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");
+    pattern: "{controller=Auth}/{action=Login}/{id?}");
 
 app.Run();

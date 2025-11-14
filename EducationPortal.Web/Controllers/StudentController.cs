@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using EducationPortal.Web.Data;
+﻿using EducationPortal.Web.Data;
 using EducationPortal.Web.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EducationPortal.Web.Controllers
 {
+    [Authorize(Roles = "admin")]
     public class StudentController : Controller
     {
         private readonly EducationContext _context;
