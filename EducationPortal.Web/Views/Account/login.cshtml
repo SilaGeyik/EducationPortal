@@ -4,61 +4,60 @@
 
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Eğitim Portalına Giriş</title>
 
-    <!-- DOĞRU CSS YOLLARI -->
     <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
     <link href="~/css/sb-admin-2.min.css" rel="stylesheet" />
 </head>
-
 <body class="bg-gradient-primary">
-
     <div class="container">
-
         <div class="row justify-content-center">
             <div class="col-xl-5 col-lg-6 col-md-8">
-
                 <div class="card o-hidden border-0 shadow-lg my-5">
                     <div class="card-body p-0">
                         <div class="p-5">
-
                             <div class="text-center">
                                 <h1 class="h4 text-gray-900 mb-4">Eğitim Portalına Giriş</h1>
                             </div>
 
+                            @if (TempData["Error"] != null)
+                            {
+                                <div class="alert alert-danger">
+                                    @TempData["Error"]
+                                </div>
+                            }
+
                             <form method="post" class="user">
                                 <div class="form-group mb-3">
-                                    <input type="email" name="email" class="form-control form-control-user" placeholder="E-posta adresi" required>
+                                    <input type="email" name="email" class="form-control form-control-user" placeholder="E-posta adresi" >
                                 </div>
-
                                 <div class="form-group mb-3">
-                                    <input type="password" name="password" class="form-control form-control-user" placeholder="Şifre" required>
+                                    <input type="password" name="password" class="form-control form-control-user" placeholder="Şifre" >
                                 </div>
-
-                                <button class="btn btn-primary btn-user btn-block">
+                                <button type="submit" class="btn btn-primary btn-user btn-block">
                                     Giriş Yap
                                 </button>
-                            </form>
+                                <div class="text-center mt-3">
+                                    <span>Hesabın yok mu?</span>
+                                    <a asp-controller="Account" asp-action="Register" class="ms-1">
+                                        Kayıt Ol
+                                    </a>
+                                </div>
 
+                            </form>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
-
     </div>
 
-    <!-- DOĞRU JS YOLLARI -->
     <script src="~/vendor/jquery/jquery.min.js"></script>
     <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="~/vendor/jquery-easing/jquery.easing.min.js"></script>
     <script src="~/js/sb-admin-2.min.js"></script>
-
 </body>
-
 </html>

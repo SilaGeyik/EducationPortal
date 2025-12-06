@@ -6,47 +6,51 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Servisler ---
 builder.Services.AddControllersWithViews();
+
 builder.Services.AddDbContext<EducationContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+
+builder.Services.AddScoped<CourseRepository>();
 
 builder.Services.AddSession();
 
-// 👉 Eksikti! MUTLAKA eklenmeli
-builder.Services.AddAuthorization();
-
-// 👉 Authentication servisi doğru
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Auth/Login";
-        options.LogoutPath = "/Auth/Logout";
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Home/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// --- Seed admin ---
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<EducationContext>();
-    context.Database.Migrate();
 
-    if (!context.Users.Any(u => u.Role == "Admin"))
+    // DB yoksa oluştursun, varsa migration'ları uygulasın
+    context.Database.EnsureCreated();
+    // veya istersen: context.Database.Migrate();
+
+    // Eğer hiç kullanıcı yoksa bir tane Admin ekle
+    if (!context.Users.Any())
     {
         context.Users.Add(new User
         {
-            FullName = "Admin Kullanıcı",
+            FullName = "Sistem Yöneticisi",
             Email = "admin@portal.com",
-            Password = "123",
+            PasswordHash = "123",   // GİRİŞTE KULLANACAĞIN ŞİFRE
             Role = "Admin"
         });
+
         context.SaveChanges();
     }
 }
 
-// --- Middleware ---
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -55,18 +59,13 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseSession();
-
-// 👉 Sırası doğru! Authentication → Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 👉 Default route
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Auth}/{action=Login}/{id?}");
+    pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.Run();

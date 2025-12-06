@@ -1,11 +1,22 @@
-﻿namespace EducationPortal.Web.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace EducationPortal.Web.Models
 {
     public class User
     {
         public int UserId { get; set; }
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string Role { get; set; } //admin veya student
+
+        public string FullName { get; set; } = null!;
+
+        public string Email { get; set; } = null!;
+
+        // Formdan gelen düz şifre – veritabanında KOLON YOK
+        [NotMapped]
+        public string? Password { get; set; }
+
+        // Veritabanındaki gerçek kolon
+        public string PasswordHash { get; set; } = null!;
+
+        public string Role { get; set; } = null!;
     }
 }

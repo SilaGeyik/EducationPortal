@@ -1,32 +1,257 @@
-﻿@model List<EducationPortal.Web.Models.Enrollment>
+﻿@model IEnumerable<EducationPortal.Web.Models.Enrollment>
+
+@{
+    ViewData["Title"] = "Öğrenci Kayıtları";
+    var students = ViewBag.Students as List<User>;
+    var courses = ViewBag.Courses as List<Course>;
+}
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Kayıt Listesi</h1>
+    <h1 class="h3 mb-4 text-gray-800">Öğrenci Kayıtları</h1>
 
+    <!-- Başarı/Hata Mesajları -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    }
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Toplam Kayıt
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count()</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Aktif Öğrenci
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.Select(e => e.UserId).Distinct().Count()
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yeni Kayıt Ekleme Formu -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Kayıtlı Öğrenciler</h6>
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-plus-circle me-2"></i>Yeni Ders Kaydı
+            </h6>
         </div>
         <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Öğrenci Adı</th>
-                        <th>Ders Adı</th>
-                        <th>Kayıt Tarihi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var e in Model)
-                    {
-                        <tr>
-                            <td>@e.User.FullName</td>
-                            <td>@e.Course.Title</td>
-                            <td>@e.EnrollmentDate.ToShortDateString()</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            <form method="post" asp-action="Create">
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label>Öğrenci Seçin</label>
+                            <select name="studentId" class="form-control" required>
+                                <option value="">Öğrenci seçin...</option>
+                                @foreach (var student in students)
+                                {
+                                    <option value="@student.UserId">@student.FullName - @student.Email</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label>Ders Seçin</label>
+                            <select name="courseId" class="form-control" required>
+                                <option value="">Ders seçin...</option>
+                                @foreach (var course in courses)
+                                {
+                                    <option value="@course.CourseId">@course.Title</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-success btn-block">
+                                <i class="fas fa-save me-1"></i>Kaydet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Kayıt Listesi -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-table me-2"></i>Tüm Kayıtlar
+            </h6>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Öğrenci Adı</th>
+                                <th>Ders Adı</th>
+                                <th>Kayıt Tarihi</th>
+                                <th>Durum</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var enrollment in Model)
+                            {
+                                <tr>
+                                    <td>@enrollment.User?.FullName</td>
+                                    <td>@enrollment.Course?.Title</td>
+                                    <td>@enrollment.EnrollmentDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>
+                                        <span class="badge badge-success">Aktif</span>
+                                    </td>
+                                    <td>
+                                        <form method="post" asp-action="Delete" style="display: inline;">
+                                            <input type="hidden" name="id" value="@enrollment.EnrollmentId" />
+                                            <button type="submit" class="btn btn-sm btn-danger delete-btn">
+                                                <i class="fas fa-trash"></i> Sil
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-inbox fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-500">Henüz kayıt bulunmamaktadır</h5>
+                    <p class="text-gray-400">Yukarıdaki formdan yeni kayıt ekleyebilirsiniz.</p>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Silme butonlarına tıklama olayını dinle
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault(); // Normal form gönderimini engelle
+
+                    const form = this.closest('form');
+                    const row = this.closest('tr');
+                    const studentName = row.cells[0].textContent.trim();
+                    const courseName = row.cells[1].textContent.trim();
+
+                    Swal.fire({
+                        title: 'Emin misiniz?',
+                        html: `<strong>"${studentName}"</strong> öğrencisinin <strong>"${courseName}"</strong> dersindeki kaydını silmek istediğinizden emin misiniz?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Evet, sil!',
+                        cancelButtonText: 'İptal',
+                        reverseButtons: true,
+                        customClass: {
+                            confirmButton: 'btn btn-danger',
+                            cancelButton: 'btn btn-secondary'
+                        },
+                        buttonsStyling: false,
+                        width: '500px'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Eğer kullanıcı evet derse formu gönder
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
+            // Başarı mesajlarını otomatik kapat (5 saniye sonra)
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.style.opacity = '0';
+                        setTimeout(() => {
+                            if (alert.parentNode) {
+                                alert.remove();
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            });
+        });
+    </script>
+
+    <style>
+        .swal2-popup {
+            font-size: 1rem;
+            border-radius: 10px;
+        }
+
+        .swal2-title {
+            font-size: 1.3rem;
+            color: #d33;
+        }
+
+        .btn {
+            margin: 0 5px;
+            padding: 8px 20px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+
+        .alert {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+}

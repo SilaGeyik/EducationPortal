@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EducationPortal.Web.Controllers
 {
-    [Authorize(Roles = "admin")]
-    public class StudentController : Controller
+    [Authorize(Roles = "Admin")]
+    public class StudentController : Controller 
     {
         private readonly EducationContext _context;
 
@@ -17,14 +17,12 @@ namespace EducationPortal.Web.Controllers
 
         public IActionResult Index()
         {
-            // Veritabanındaki tüm öğrencileri çek
+            // Veritabanındaki tüm öğrencileri çekme
             var students = _context.Users
-                .Where(u => u.Role == "Student") // Eğer User tablon öğrencileri tutuyorsa
+                .Where(u => u.Role == "Student")
                 .ToList();
 
             ViewData["Title"] = "Öğrenciler";
-
-            // ✅ View'e model olarak öğrencileri gönder
             return View(students);
         }
     }

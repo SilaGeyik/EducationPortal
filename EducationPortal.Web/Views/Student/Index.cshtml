@@ -1,32 +1,249 @@
-﻿@model List<EducationPortal.Web.Models.User>
+﻿@model IEnumerable<EducationPortal.Web.Models.User>
 
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">Öğrenci Listesi</h1>
 
+    <!-- Öğrenci Ekleme Formu -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Kayıtlı Öğrenciler</h6>
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-user-plus me-2"></i>Yeni Öğrenci Ekle
+            </h6>
         </div>
         <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Ad Soyad</th>
-                        <th>E-Posta</th>
-                        <th>Rol</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var student in Model)
-                    {
+            <form id="addStudentForm">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Ad Soyad</label>
+                            <input type="text" id="fullName" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">E-Posta</label>
+                            <input type="email" id="email" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label">Şifre</label>
+                            <input type="password" id="password" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <div class="form-group">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-success btn-block">
+                                <i class="fas fa-plus me-1"></i>Ekle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Öğrenci Listesi -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-2"></i>Tüm Öğrenciler
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="studentsTable" width="100%" cellspacing="0">
+                    <thead>
                         <tr>
-                            <td>@student.FullName</td>
-                            <td>@student.Email</td>
-                            <td>@student.Role</td>
+                            <th>#</th>
+                            <th>Ad Soyad</th>
+                            <th>E-Posta</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            int counter = 1;
+                            foreach (var student in Model)
+                            {
+                                <tr id="student-@student.UserId">
+                                    <td>@counter</td>
+                                    <td>@student.FullName</td>
+                                    <td>@student.Email</td>
+                                    <td>
+                                        <span class="badge badge-success">Aktif</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                counter++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
+                                    <h5 class="text-gray-500">Henüz kayıtlı öğrenci bulunmamaktadır</h5>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+                // Öğrenci Ekleme AJAX
+        $(document).ready(function() {
+            $('#addStudentForm').on('submit', function(e) {
+                e.preventDefault();
+
+                var fullName = $('#fullName').val();
+                var email = $('#email').val();
+                var password = $('#password').val();
+
+                // Validasyon
+                if (!fullName || !email || !password) {
+                    Swal.fire('Uyarı!', 'Tüm alanları doldurunuz!', 'warning');
+                    return;
+                }
+
+                // Loading göster
+                var submitBtn = $(this).find('button[type="submit"]');
+                submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Ekleniyor...');
+                submitBtn.prop('disabled', true);
+
+                // AJAX isteği
+                $.ajax({
+                    url: '@Url.Action("AddStudentAjax", "Admin")',
+                    type: 'POST',
+                    data: {
+                        fullName: fullName,
+                        email: email,
+                        password: password
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Başarı mesajı
+                            Swal.fire('Başarılı!', response.message, 'success');
+
+                            // Formu temizle
+                            $('#addStudentForm')[0].reset();
+
+                            // Eğer tablo boşsa, boş mesajını kaldır
+                            if ($('#studentsTable tbody tr td').length === 1 && $('#studentsTable tbody tr td').attr('colspan')) {
+                                $('#studentsTable tbody').empty();
+                            }
+
+                            // Yeni öğrenciyi tabloya ekle
+                            var newRow = `
+                                <tr id="student-${response.student.userId}">
+                                    <td>${$('#studentsTable tbody tr').length + 1}</td>
+                                    <td>
+                                        <i class="fas fa-user me-2 text-primary"></i>
+                                        ${response.student.fullName}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-envelope me-2 text-secondary"></i>
+                                        ${response.student.email}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-success">${response.student.role}</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning edit-student" data-id="${response.student.userId}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-student" data-id="${response.student.userId}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+
+                            $('#studentsTable tbody').prepend(newRow);
+
+                            // Sıra numaralarını güncelle
+                            updateRowNumbers();
+
+                        } else {
+                            Swal.fire('Hata!', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire('Hata!', 'İşlem sırasında bir hata oluştu: ' + error, 'error');
+                    },
+                    complete: function() {
+                        // Butonu eski haline getir
+                        submitBtn.html('<i class="fas fa-plus me-1"></i>Ekle');
+                        submitBtn.prop('disabled', false);
+                    }
+                });
+            });
+
+            // Öğrenci Silme
+            $(document).on('click', '.delete-student', function() {
+                var studentId = $(this).data('id');
+                var studentName = $(this).closest('tr').find('td:eq(1)').text().trim();
+
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    text: `"${studentName}" adlı öğrenciyi silmek istediğinizden emin misiniz?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Evet, sil!',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '@Url.Action("DeleteStudentAjax", "Admin")',
+                            type: 'POST',
+                            data: { id: studentId },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire('Silindi!', response.message, 'success');
+                                    $('#student-' + studentId).remove();
+                                    updateRowNumbers();
+                                } else {
+                                    Swal.fire('Hata!', response.message, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.fire('Hata!', 'Silme işlemi sırasında bir hata oluştu.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Sıra numaralarını güncelleme fonksiyonu
+            function updateRowNumbers() {
+                $('#studentsTable tbody tr').each(function(index) {
+                    $(this).find('td:first').text(index + 1);
+                });
+            }
+
+            // Öğrenci Düzenleme
+            $(document).on('click', '.edit-student', function() {
+                var studentId = $(this).data('id');
+                Swal.fire('Bilgi', 'Öğrenci düzenleme özelliği aktif edilecek.', 'info');
+            });
+        });
+
+    </script>
+}

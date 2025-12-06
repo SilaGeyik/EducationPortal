@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EducationPortal.Web.Controllers
 {
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     public class CourseController : Controller
     {
         private readonly EducationContext _context;
@@ -17,7 +17,9 @@ namespace EducationPortal.Web.Controllers
             _context = context;
         }
 
+        // ================================
         // LIST
+        // ================================
         public IActionResult Index()
         {
             var courses = _context.Courses
@@ -27,15 +29,21 @@ namespace EducationPortal.Web.Controllers
             return View(courses);
         }
 
-        // ADD PAGE (GET)
+        // ================================
+        // ADD - GET
+        // ================================
         [HttpGet]
         public IActionResult Add()
         {
-            ViewBag.Categories = new SelectList(_context.CourseCategories, "CourseCategoryId", "Name");
+            ViewBag.Categories =
+                new SelectList(_context.CourseCategories, "CourseCategoryId", "Name");
+
             return View();
         }
 
-        // ADD (POST)
+        // ================================
+        // ADD - POST
+        // ================================
         [HttpPost]
         public IActionResult Add(Course course)
         {
@@ -43,28 +51,44 @@ namespace EducationPortal.Web.Controllers
             {
                 _context.Courses.Add(course);
                 _context.SaveChanges();
+
                 TempData["Success"] = "Kurs başarıyla eklendi!";
                 return RedirectToAction("Index");
             }
 
-            ViewBag.Categories = new SelectList(_context.CourseCategories, "CourseCategoryId", "Name", course.CourseCategoryId);
+            ViewBag.Categories =
+                new SelectList(_context.CourseCategories,
+                               "CourseCategoryId",
+                               "Name",
+                               course.CourseCategoryId);
+
             TempData["Error"] = "Kurs eklenirken bir hata oluştu!";
             return View(course);
         }
 
-        // EDIT PAGE (GET)
+        // ================================
+        // EDIT - GET
+        // ================================
         [HttpGet]
         public IActionResult Edit(int id)
         {
             var course = _context.Courses.Find(id);
+
             if (course == null)
                 return NotFound();
 
-            ViewBag.Categories = new SelectList(_context.CourseCategories, "CourseCategoryId", "Name", course.CourseCategoryId);
+            ViewBag.Categories =
+                new SelectList(_context.CourseCategories,
+                               "CourseCategoryId",
+                               "Name",
+                               course.CourseCategoryId);
+
             return View(course);
         }
 
-        // EDIT (POST)
+        // ================================
+        // EDIT - POST
+        // ================================
         [HttpPost]
         public IActionResult Edit(Course course)
         {
@@ -72,29 +96,92 @@ namespace EducationPortal.Web.Controllers
             {
                 _context.Courses.Update(course);
                 _context.SaveChanges();
+
                 TempData["Success"] = "Kurs başarıyla güncellendi!";
                 return RedirectToAction("Index");
             }
 
-            ViewBag.Categories = new SelectList(_context.CourseCategories, "CourseCategoryId", "Name", course.CourseCategoryId);
+            ViewBag.Categories =
+                new SelectList(_context.CourseCategories,
+                               "CourseCategoryId",
+                               "Name",
+                               course.CourseCategoryId);
+
             TempData["Error"] = "Kurs güncellenirken bir hata oluştu!";
             return View(course);
         }
 
-        // DELETE
+        // ================================
+        // DELETE - AJAX
+        // ================================
+        [HttpPost]
         public IActionResult Delete(int id)
         {
-            var course = _context.Courses.Find(id);
-            if (course == null)
-                return NotFound();
+            try
+            {
+                var course = _context.Courses.Find(id);
 
-            _context.Courses.Remove(course);
-            _context.SaveChanges();
+                if (course == null)
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Kurs bulunamadı"
+                    });
 
-            TempData["Success"] = "Kurs silindi!";
-            return RedirectToAction("Index");
+                _context.Courses.Remove(course);
+                _context.SaveChanges();
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Kurs başarıyla silindi"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Silme işlemi hatalı: " + ex.Message
+                });
+            }
+        }
+
+
+        // ================================
+        // GET COURSES - AJAX
+        // ================================
+        [HttpGet]
+        public IActionResult GetCourses()
+        {
+            try
+            {
+                var courses = _context.Courses
+                    .Include(c => c.CourseCategory)
+                    .Select(c => new
+                    {
+                        c.CourseId,
+                        c.Title,
+                        c.Credits,
+                        c.Instructor,
+                        CategoryName = c.CourseCategory.Name
+                    })
+                    .ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    data = courses
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Liste yüklenirken hata oluştu: " + ex.Message
+                });
+            }
         }
     }
 }
-
-

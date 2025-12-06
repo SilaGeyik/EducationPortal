@@ -1,5 +1,83 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+    ViewData["Title"] = "Kayıt Ol";
 }
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Eğitim Portalına Katıl</title>
+
+    <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
+    <link href="~/css/sb-admin-2.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gradient-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-5 col-lg-6 col-md-8">
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-0">
+                        <div class="p-5">
+                            <div class="text-center">
+                                <h1 class="h4 text-gray-900 mb-4">Eğitim Portalına Katıl</h1>
+                            </div>
+
+                            @if (ViewBag.Error != null)
+                            {
+                                <div class="alert alert-danger">
+                                    @ViewBag.Error
+                                </div>
+                            }
+
+                            <form method="post" class="user">
+                                <div class="form-group mb-3">
+                                    <input type="text"
+                                           name="fullName"
+                                           class="form-control form-control-user"
+                                           placeholder="Ad Soyad"
+                                           required />
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <input type="email"
+                                           name="email"
+                                           class="form-control form-control-user"
+                                           placeholder="E-posta adresi"
+                                           required />
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <input type="password"
+                                           name="password"
+                                           class="form-control form-control-user"
+                                           placeholder="Şifreniz"
+                                           required />
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-user btn-block">
+                                    Hesap Oluştur
+                                </button>
+
+                                <div class="text-center mt-3">
+                                    <span>Zaten hesabın var mı?</span>
+                                    <a asp-controller="Account" asp-action="Login" class="ms-1">
+                                        Giriş Yap
+                                    </a>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/vendor/jquery/jquery.min.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="~/js/sb-admin-2.min.js"></script>
+</body>
+</html>
