@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Linq;
 
 namespace EducationPortal.Web.Controllers
 {
@@ -18,28 +17,50 @@ namespace EducationPortal.Web.Controllers
             _context = context;
         }
 
-        // Login Sayfasını Göster (GET)
+        // LOGIN SAYFASI (GET)
         [HttpGet]
         public IActionResult Login()
         {
             return View("~/Views/Account/Login.cshtml");
         }
 
-        // Login İşlemi (POST) - HASH KONTROL
+        // LOGIN (POST) - HEM HASH HEM PLAIN DESTEKLİ
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            // 1) Email'e göre kullanıcıyı bul
+            // 1) Kullanıcıyı email ile bul
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
 
-            // 2) Kullanıcı yoksa veya hash uyuşmuyorsa hata
-            if (user == null || user.PasswordHash != PasswordHelper.Hash(password))
+            if (user == null)
             {
                 TempData["Error"] = "Geçersiz email veya şifre!";
                 return View("~/Views/Account/Login.cshtml");
             }
 
-            // 3) Kullanıcı bilgilerini cookie içine ekle
+            // 2) Girilen şifrenin hash'ini hesapla
+            var enteredHash = PasswordHelper.Hash(password);
+
+            // 3) İki ihtimal var:
+            //    - user.PasswordHash zaten hash'li → enteredHash ile eşit olmalı
+            //    - user.PasswordHash eski düz metin → girilen password ile aynı olmalı
+            bool isMatch =
+                user.PasswordHash == enteredHash ||   // yeni/hash'li kayıt
+                user.PasswordHash == password;        // eski/plain kayıt
+
+            if (!isMatch)
+            {
+                TempData["Error"] = "Geçersiz email veya şifre!";
+                return View("~/Views/Account/Login.cshtml");
+            }
+
+            // 4) Eğer eski kayıt ise (plain text), şimdi HASH'e çevir ve kaydet
+            if (user.PasswordHash == password)
+            {
+                user.PasswordHash = enteredHash;
+                _context.SaveChanges();
+            }
+
+            // 5) Cookie'ye claim'leri yaz
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.FullName),
@@ -52,21 +73,16 @@ namespace EducationPortal.Web.Controllers
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            // 4) Rol kontrolü yap, ona göre yönlendir
+            // 6) Rol'e göre yönlendir
             if (user.Role == "Admin")
-            {
                 return RedirectToAction("Index", "Admin");
-            }
             else if (user.Role == "Student")
-            {
                 return RedirectToAction("Index", "StudentHome");
-            }
 
-            // Bilinmeyen rol olursa tekrar login sayfasına gönder
             return RedirectToAction("Login");
         }
 
-        // Logout Action
+        // LOGOUT
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
@@ -74,18 +90,17 @@ namespace EducationPortal.Web.Controllers
             return RedirectToAction("Login");
         }
 
-        // Kayıt Sayfası (GET)
+        // KAYIT SAYFASI (GET)
         [HttpGet]
         public IActionResult Register()
         {
             return View("~/Views/Account/Register.cshtml");
         }
 
-        // Kayıt İşlemi (POST)
+        // KAYIT (POST) - YENİ KULLANICI HER ZAMAN HASH'LENİR
         [HttpPost]
         public IActionResult Register(string fullName, string email, string password)
         {
-            // Aynı e-posta ile kullanıcı var mı?
             var existingUser = _context.Users.FirstOrDefault(u => u.Email == email);
             if (existingUser != null)
             {
@@ -93,12 +108,11 @@ namespace EducationPortal.Web.Controllers
                 return View("~/Views/Account/Register.cshtml");
             }
 
-            // Yeni kullanıcıyı HASH'LENMİŞ şifre ile oluştur
             var user = new User
             {
                 FullName = fullName,
                 Email = email,
-                PasswordHash = PasswordHelper.Hash(password),   // 🔒 HASH
+                PasswordHash = PasswordHelper.Hash(password),
                 Role = "Student"
             };
 

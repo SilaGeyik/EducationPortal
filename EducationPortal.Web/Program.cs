@@ -3,9 +3,11 @@ using EducationPortal.Web.Models;
 using EducationPortal.Web.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using EducationPortal.Web.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// SERVICES
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<EducationContext>(options =>
@@ -27,29 +29,29 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// --- SEED ---
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<EducationContext>();
 
-    // DB yoksa oluştursun, varsa migration'ları uygulasın
     context.Database.EnsureCreated();
-    // veya istersen: context.Database.Migrate();
 
-    // Eğer hiç kullanıcı yoksa bir tane Admin ekle
-    if (!context.Users.Any())
+    // Eğer admin yoksa bir tane ekle (HASH'LI)
+    if (!context.Users.Any(u => u.Email == "admin@portal.com" && u.Role == "Admin"))
     {
-        context.Users.Add(new User
+        var adminUser = new User
         {
             FullName = "Sistem Yöneticisi",
             Email = "admin@portal.com",
-            PasswordHash = "123",   // GİRİŞTE KULLANACAĞIN ŞİFRE
+            PasswordHash = PasswordHelper.Hash("123"), // admin şifresi: 123
             Role = "Admin"
-        });
+        };
 
+        context.Users.Add(adminUser);
         context.SaveChanges();
     }
 }
-
+// --- SEED BİTİŞ ---
 
 if (!app.Environment.IsDevelopment())
 {
@@ -59,7 +61,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
+
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -69,3 +73,4 @@ app.MapControllerRoute(
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.Run();
+

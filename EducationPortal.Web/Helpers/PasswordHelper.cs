@@ -8,7 +8,7 @@ namespace EducationPortal.Web.Helpers
         public static string Hash(string password)
         {
             using var sha = SHA256.Create();
-            var bytes = Encoding.UTF8.GetBytes(password);
+            var bytes = Encoding.UTF8.GetBytes(password ?? string.Empty);
             var hashBytes = sha.ComputeHash(bytes);
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
         }

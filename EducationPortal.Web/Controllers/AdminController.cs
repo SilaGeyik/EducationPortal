@@ -69,7 +69,6 @@ namespace EducationPortal.Web.Controllers
         [HttpPost]
         public JsonResult AddStudentAjax(string fullName, string email, string password)
         {
-            // Aynı mailden var mı kontrol et
             var existing = _context.Users.FirstOrDefault(u => u.Email == email);
             if (existing != null)
             {
@@ -84,7 +83,7 @@ namespace EducationPortal.Web.Controllers
             {
                 FullName = fullName,
                 Email = email,
-                PasswordHash = PasswordHelper.Hash(password), // 🔒 HASH
+                PasswordHash = PasswordHelper.Hash(password), // HASH
                 Role = "Student"
             };
 
@@ -104,6 +103,7 @@ namespace EducationPortal.Web.Controllers
                 }
             });
         }
+
 
         // AJAX ile öğrenci silme
         [HttpPost]
