@@ -10,12 +10,12 @@ namespace EducationPortal.Web.Models
 
         public string Email { get; set; } = null!;
 
-        // Formdan gelen düz şifre – veritabanında KOLON YOK
+        // Formdan gelen düz şifre – veritabanında KOLONU YOK
         [NotMapped]
         public string? Password { get; set; }
 
         // Veritabanındaki gerçek kolon
-        public string PasswordHash { get; set; } = null!;
+        public string PasswordHash { get; set; } = null!; //Hash'li saklayacağım için şifreleri
 
         public string Role { get; set; } = null!;
     }

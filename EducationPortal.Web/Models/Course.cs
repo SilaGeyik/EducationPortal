@@ -16,11 +16,11 @@ namespace EducationPortal.Web.Models
         [Required, StringLength(150)]
         public string Instructor { get; set; } = "";
 
-        // ZORUNLU FK
+        
         [Required]
         public int CourseCategoryId { get; set; }
 
-        // Navigation
+        
         public CourseCategory? CourseCategory { get; set; }
     }
 }

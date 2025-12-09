@@ -1,17 +1,11 @@
-﻿using EducationPortal.Web.Models;
-using System.Collections.Generic;
-
+﻿using System.Collections.Generic;
+using EducationPortal.Web.Models;
 
 namespace EducationPortal.Web.Repositories
 {
-    public interface ICourseRepository
+    public interface ICourseRepository : IGenericRepository<Course>
     {
-        //Interface, hangi işlemleri desteklediğimizi tanımlar ama nasıl yapılacağını söylemez.
-        IEnumerable<Course> GetAll();//Tüm dersleri getir
-        Course GetById(int id);//Id'ye göre dersi getir
-        void Add(Course course);//Yeni ders ekle
-        void Update(Course course);//Dersi Güncelle
-        void Delete(int id);//Dersi sil
-        void Save();//Değişiklikleri Kaydet
+        // Kursa özel ekstra işlemler gerekiyorsa buraya eklersin.
+        IEnumerable<Course> GetCoursesWithCategory();
     }
 }

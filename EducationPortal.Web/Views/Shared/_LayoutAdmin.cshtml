@@ -23,17 +23,14 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- (İki kere yazılmış ama tasarıma zarar vermediği için bırakıyorum) -->
     <link rel="stylesheet" href="~/vendor/fontawesome-free/css/all.min.css" />
     <link rel="stylesheet" href="~/css/sb-admin-2.min.css" />
-
 </head>
+
 <body id="page-top">
 
-    <!-- Topbar Bitişi -->
-
     <div id="wrapper">
-
-
 
         <!-- Sidebar -->
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
@@ -94,10 +91,11 @@
             </li>
 
         </ul>
-
+        <!-- End of Sidebar -->
         <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
             <div id="content">
+
                 <!-- Topbar -->
                 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow" style="height:65px;">
 
@@ -133,15 +131,83 @@
                 </nav>
                 <!-- End of Topbar -->
                 @RenderBody()
-                </div>
+
             </div>
         </div>
-    </div>
+        <!-- End Content Wrapper -->
 
+    </div>
+    <!-- End Wrapper -->
+    <!-- JS kütüphaneleri -->
     <script src="~/vendor/jquery/jquery.min.js"></script>
     <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="~/vendor/jquery-easing/jquery.easing.min.js"></script>
     <script src="~/js/sb-admin-2.min.js"></script>
+
+    <!-- SignalR client -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+    <!-- Bildirim alanı -->
+    <div id="notificationArea"></div>
+
+    <style>
+        #notificationArea {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            width: 320px;
+        }
+    </style>
+
+    <!-- SignalR script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            console.log("SignalR: bağlantı hazırlanıyor...");
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveNotification", function (message) {
+                console.log("SignalR: Bildirim geldi ->", message);
+
+                var container = document.getElementById("notificationArea");
+
+                var alertDiv = document.createElement("div");
+                alertDiv.className = "alert alert-info alert-dismissible fade show mb-2";
+                alertDiv.innerHTML = `
+                    <strong>Bildirim:</strong> ${message}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                `;
+
+                container.appendChild(alertDiv);
+
+                setTimeout(function () {
+                    $(alertDiv).alert('close');
+                }, 5000);
+            });
+
+            async function start() {
+                try {
+                    await connection.start();
+                    console.log("SignalR: bağlantı kuruldu ✅");
+                } catch (err) {
+                    console.error("SignalR: bağlantı hatası ❌", err);
+                    setTimeout(start, 5000);
+                }
+            }
+
+            start();
+        });
+    </script>
+
     @RenderSection("Scripts", required: false)
+
 </body>
 </html>
+

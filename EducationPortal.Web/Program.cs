@@ -4,16 +4,23 @@ using EducationPortal.Web.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using EducationPortal.Web.Helpers;
+using EducationPortal.Web.Hubs;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // SERVICES
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
+
 
 builder.Services.AddDbContext<EducationContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<CourseRepository>();
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+
 
 builder.Services.AddSession();
 
@@ -71,6 +78,10 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
+app.MapHub<NotificationHub>("/notificationHub");
+
+
+
 
 app.Run();
 

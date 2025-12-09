@@ -15,14 +15,14 @@ namespace EducationPortal.Web.Controllers
             _context = context;
         }
 
-        // /Student  veya /Student/Index
         public IActionResult Index()
         {
             var students = _context.Users
                 .Where(u => u.Role == "Student")
                 .ToList();
 
-            return View(students);   // Views/Student/Index.cshtml
+            return View(students);
         }
     }
 }
+

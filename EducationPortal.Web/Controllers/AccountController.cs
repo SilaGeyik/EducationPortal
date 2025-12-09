@@ -28,7 +28,7 @@ namespace EducationPortal.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            // 1) Kullanıcıyı email ile bul
+            //Kullanıcıyı email ile bul
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
 
             if (user == null)
@@ -37,12 +37,12 @@ namespace EducationPortal.Web.Controllers
                 return View("~/Views/Account/Login.cshtml");
             }
 
-            // 2) Girilen şifrenin hash'ini hesapla
+            //Girilen şifrenin hash'ini hesapla
             var enteredHash = PasswordHelper.Hash(password);
 
-            // 3) İki ihtimal var:
-            //    - user.PasswordHash zaten hash'li → enteredHash ile eşit olmalı
-            //    - user.PasswordHash eski düz metin → girilen password ile aynı olmalı
+            //İki ihtimal var:
+            //    - user.PasswordHash zaten hash'li → enteredHash ile eşit 
+            //    - user.PasswordHash eski düz metin → girilen password ile aynı 
             bool isMatch =
                 user.PasswordHash == enteredHash ||   // yeni/hash'li kayıt
                 user.PasswordHash == password;        // eski/plain kayıt
@@ -53,14 +53,14 @@ namespace EducationPortal.Web.Controllers
                 return View("~/Views/Account/Login.cshtml");
             }
 
-            // 4) Eğer eski kayıt ise (plain text), şimdi HASH'e çevir ve kaydet
+            //Eğer eski kayıt ise (plain text), şimdi HASH'e çevir ve kaydet
             if (user.PasswordHash == password)
             {
                 user.PasswordHash = enteredHash;
                 _context.SaveChanges();
             }
 
-            // 5) Cookie'ye claim'leri yaz
+            //Cookie'ye claim'leri yaz
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.FullName),
@@ -73,7 +73,7 @@ namespace EducationPortal.Web.Controllers
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            // 6) Rol'e göre yönlendir
+            //Rol'e göre yönlendir
             if (user.Role == "Admin")
                 return RedirectToAction("Index", "Admin");
             else if (user.Role == "Student")
@@ -97,7 +97,7 @@ namespace EducationPortal.Web.Controllers
             return View("~/Views/Account/Register.cshtml");
         }
 
-        // KAYIT (POST) - YENİ KULLANICI HER ZAMAN HASH'LENİR
+        // KAYIT (POST) - YENİ KULLANICI HER ZAMAN HASH'LENECEK
         [HttpPost]
         public IActionResult Register(string fullName, string email, string password)
         {

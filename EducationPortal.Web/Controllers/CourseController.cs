@@ -10,54 +10,50 @@ namespace EducationPortal.Web.Controllers
     [Authorize(Roles = "Admin")]
     public class CourseController : Controller
     {
-        private readonly EducationContext _context;
+        private readonly EducationContext _courseRepository
+            ;
 
         public CourseController(EducationContext context)
         {
-            _context = context;
+            _courseRepository = context;
         }
 
-        // ================================
-        // LIST
-        // ================================
+       
+      
         public IActionResult Index()
         {
-            var courses = _context.Courses
+            var courses = _courseRepository.Courses
                 .Include(c => c.CourseCategory)
                 .ToList();
 
             return View(courses);
         }
 
-        // ================================
-        // ADD - GET
-        // ================================
+       
         [HttpGet]
         public IActionResult Add()
         {
             ViewBag.Categories =
-                new SelectList(_context.CourseCategories, "CourseCategoryId", "Name");
+                new SelectList(_courseRepository.CourseCategories, "CourseCategoryId", "Name");
 
             return View();
         }
 
-        // ================================
-        // ADD - POST
-        // ================================
+        
         [HttpPost]
         public IActionResult Add(Course course)
         {
             if (ModelState.IsValid)
             {
-                _context.Courses.Add(course);
-                _context.SaveChanges();
+                _courseRepository.Courses.Add(course);
+                _courseRepository.SaveChanges();
 
                 TempData["Success"] = "Kurs başarıyla eklendi!";
                 return RedirectToAction("Index");
             }
 
             ViewBag.Categories =
-                new SelectList(_context.CourseCategories,
+                new SelectList(_courseRepository.CourseCategories,
                                "CourseCategoryId",
                                "Name",
                                course.CourseCategoryId);
@@ -66,19 +62,17 @@ namespace EducationPortal.Web.Controllers
             return View(course);
         }
 
-        // ================================
-        // EDIT - GET
-        // ================================
+        
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            var course = _context.Courses.Find(id);
+            var course = _courseRepository.Courses.Find(id);
 
             if (course == null)
                 return NotFound();
 
             ViewBag.Categories =
-                new SelectList(_context.CourseCategories,
+                new SelectList(_courseRepository.CourseCategories,
                                "CourseCategoryId",
                                "Name",
                                course.CourseCategoryId);
@@ -86,23 +80,20 @@ namespace EducationPortal.Web.Controllers
             return View(course);
         }
 
-        // ================================
-        // EDIT - POST
-        // ================================
         [HttpPost]
         public IActionResult Edit(Course course)
         {
             if (ModelState.IsValid)
             {
-                _context.Courses.Update(course);
-                _context.SaveChanges();
+                _courseRepository.Courses.Update(course);
+                _courseRepository.SaveChanges();
 
                 TempData["Success"] = "Kurs başarıyla güncellendi!";
                 return RedirectToAction("Index");
             }
 
             ViewBag.Categories =
-                new SelectList(_context.CourseCategories,
+                new SelectList(_courseRepository.CourseCategories,
                                "CourseCategoryId",
                                "Name",
                                course.CourseCategoryId);
@@ -111,15 +102,13 @@ namespace EducationPortal.Web.Controllers
             return View(course);
         }
 
-        // ================================
-        // DELETE - AJAX
-        // ================================
+        
         [HttpPost]
         public IActionResult Delete(int id)
         {
             try
             {
-                var course = _context.Courses.Find(id);
+                var course = _courseRepository.Courses.Find(id);
 
                 if (course == null)
                     return Json(new
@@ -128,8 +117,8 @@ namespace EducationPortal.Web.Controllers
                         message = "Kurs bulunamadı"
                     });
 
-                _context.Courses.Remove(course);
-                _context.SaveChanges();
+                _courseRepository.Courses.Remove(course);
+                _courseRepository.SaveChanges();
 
                 return Json(new
                 {
@@ -148,15 +137,12 @@ namespace EducationPortal.Web.Controllers
         }
 
 
-        // ================================
-        // GET COURSES - AJAX
-        // ================================
         [HttpGet]
         public IActionResult GetCourses()
         {
             try
             {
-                var courses = _context.Courses
+                var courses = _courseRepository.Courses
                     .Include(c => c.CourseCategory)
                     .Select(c => new
                     {
