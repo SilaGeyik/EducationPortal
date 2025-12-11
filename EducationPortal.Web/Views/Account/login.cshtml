@@ -1,5 +1,6 @@
 ﻿@{
     Layout = null;
+    ViewData["Title"] = "Giriş Yap";
 }
 
 <!DOCTYPE html>
@@ -23,6 +24,7 @@
                                 <h1 class="h4 text-gray-900 mb-4">Eğitim Portalına Giriş</h1>
                             </div>
 
+                            @* Eski TempData hatası  *@
                             @if (TempData["Error"] != null)
                             {
                                 <div class="alert alert-danger">
@@ -30,24 +32,62 @@
                                 </div>
                             }
 
-                            <form method="post" class="user">
-                                <div class="form-group mb-3">
-                                    <input type="email" name="email" class="form-control form-control-user" placeholder="E-posta adresi" >
+                            @* ModelState üzerinden gelen Identity hataları *@
+                            @if (!ViewData.ModelState.IsValid &&
+                                                        ViewData.ModelState.Values.SelectMany(v => v.Errors).Any())
+                            {
+                                <div class="alert alert-danger">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <div>@error.ErrorMessage</div>
+                                    }
                                 </div>
+                            }
+                            
+
+                            <form asp-controller="Account"
+                                  asp-action="Login"
+                                  method="post"
+                                  class="user">
+
                                 <div class="form-group mb-3">
-                                    <input type="password" name="password" class="form-control form-control-user" placeholder="Şifre" >
+                                    <input type="email"
+                                           name="email"
+                                           class="form-control form-control-user"
+                                           placeholder="E-posta adresi"
+                                           required />
                                 </div>
+
+                                <div class="form-group mb-3">
+                                    <input type="password"
+                                           name="password"
+                                           class="form-control form-control-user"
+                                           placeholder="Şifre"
+                                           required />
+                                </div>
+
+                                <div class="form-group mb-3 form-check">
+                                    <input type="checkbox"
+                                           id="rememberMe"
+                                           name="rememberMe"
+                                           class="form-check-input" />
+                                    <label class="form-check-label" for="rememberMe">
+                                        Beni hatırla
+                                    </label>
+                                </div>
+
                                 <button type="submit" class="btn btn-primary btn-user btn-block">
                                     Giriş Yap
                                 </button>
+
                                 <div class="text-center mt-3">
                                     <span>Hesabın yok mu?</span>
                                     <a asp-controller="Account" asp-action="Register" class="ms-1">
                                         Kayıt Ol
                                     </a>
                                 </div>
-
                             </form>
+
                         </div>
                     </div>
                 </div>

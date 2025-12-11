@@ -1,8 +1,11 @@
-﻿@model List<EducationPortal.Web.Models.Course>
+﻿@using System.Collections.Generic
+@model List<EducationPortal.Web.Models.Course>
 
 @{
-    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Kurs Listesi";
+
+    var enrolledIds = ViewBag.EnrolledCourseIds as List<int> ?? new List<int>();
 }
 
 <div class="container-fluid">
@@ -15,11 +18,16 @@
                 <button id="refreshCourses" class="btn btn-info btn-sm mr-2">
                     <i class="fas fa-sync-alt"></i> Listeyi Yenile
                 </button>
-                <a asp-action="Add" class="btn btn-success btn-sm">
-                    <i class="fas fa-plus-circle"></i> Yeni Ders Ekle
-                </a>
+
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-action="Add" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus-circle"></i> Yeni Ders Ekle
+                    </a>
+                }
             </div>
         </div>
+
         <div class="card-body">
             <table class="table table-bordered table-hover">
                 <thead class="thead-light">
@@ -40,15 +48,46 @@
                             <td>@course.Instructor</td>
                             <td>@course.CourseCategory?.Name</td>
                             <td>
-                                <a asp-action="Edit" asp-route-id="@course.CourseId" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-edit"></i> Düzenle
-                                </a>
-                                <button type="button"
-                                        data-id="@course.CourseId"
-                                        class="btn btn-danger btn-sm delete-btn">
-                                    <i class="fas fa-trash-alt"></i> Sil
-                                </button>
+                                @* ADMIN: Düzenle / Sil *@
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-action="Edit"
+                                       asp-route-id="@course.CourseId"
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fas fa-edit"></i> Düzenle
+                                    </a>
 
+                                    <button type="button"
+                                            data-id="@course.CourseId"
+                                            class="btn btn-danger btn-sm delete-btn">
+                                        <i class="fas fa-trash-alt"></i> Sil
+                                    </button>
+                                }
+                                @* STUDENT: Kayıt Ol / Kayıtlı *@
+                                else if (User.IsInRole("Student"))
+                                {
+                                    bool isEnrolled = enrolledIds.Contains(course.CourseId);
+
+                                    if (isEnrolled)
+                                    {
+                                        <button class="btn btn-secondary btn-sm" disabled>
+                                            <i class="fas fa-check"></i> Kayıtlı
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <form asp-controller="StudentCourses"
+                                              asp-action="Enroll"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="courseId" value="@course.CourseId" />
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="fas fa-plus"></i> Kayıt Ol
+                                            </button>
+                                        </form>
+                                    }
+                                }
                             </td>
                         </tr>
                     }
@@ -57,6 +96,7 @@
         </div>
     </div>
 </div>
+
 @section Scripts {
 
     <script>

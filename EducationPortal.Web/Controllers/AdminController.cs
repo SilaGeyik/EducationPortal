@@ -1,94 +1,53 @@
 ﻿using EducationPortal.Web.Data;
-using EducationPortal.Web.Hubs;
 using EducationPortal.Web.Models;
+using EducationPortal.Web.Repositories;
+using EducationPortal.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace EducationPortal.Web.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
+        private readonly UserManager<User> _userManager;
+        private readonly ICourseRepository _courseRepository;
         private readonly EducationContext _context;
-        private readonly IHubContext<NotificationHub> _notificationHub;
 
-        
-        public AdminController(EducationContext context, IHubContext<NotificationHub> notificationHub)
+        public AdminController(
+            UserManager<User> userManager,
+            ICourseRepository courseRepository,
+            EducationContext context)
         {
+            _userManager = userManager;
+            _courseRepository = courseRepository;
             _context = context;
-            _notificationHub = notificationHub; // signalR injection
         }
 
+        // Dashboard
         public IActionResult Index()
         {
-            return View();
-        }
+            // Toplam öğrenci 
+            var totalStudents = _userManager.Users
+                                            .Count(u => u.Role == "Student");
 
-        // ------------------------
-        // Öğrenci listesi
-        // ------------------------
-        public IActionResult Students()
-        {
-            var students = _context.Users
-                .Where(x => x.Role == "Student") 
-                .ToList();
+            // Kurslar repository'den
+            var courses = _courseRepository.GetAll();
+            var totalCourses = courses.Count;
 
-            return View(students);
-        }
+            // Toplam kayıt 
+            var totalEnrollments = _context.Enrollments.Count();
 
+            var model = new AdminDashboardViewModel
+            {
+                TotalStudents = totalStudents,
+                TotalCourses = totalCourses,
+                TotalEnrollments = totalEnrollments
+            };
 
-     
-        [HttpGet]
-        public IActionResult AddStudent()
-        {
-            return View();
-        }
-
-
-       
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddStudent(User model)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            // Normal kayıt işlemi -------------------------------------
-            _context.Users.Add(model);
-            await _context.SaveChangesAsync();
-            
-
-            var fullName = $"{model.FullName}";
-
-
-            await _notificationHub.Clients.All.SendAsync(
-                "ReceiveNotification",
-                $"{fullName} isimli öğrenci sisteme eklendi."
-            );
-
-
-            
-            return RedirectToAction(nameof(Students));
-        }
-
-
-        // ---------------------------------------------------
-        // Öğrenci silme
-        // ---------------------------------------------------
-        [HttpPost]
-        public async Task<IActionResult> DeleteStudent(int id)
-        {
-            var student = _context.Users.Find(id);
-            if (student == null)
-                return NotFound();
-
-            _context.Users.Remove(student);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Students));
+            return View(model);
         }
     }
 }

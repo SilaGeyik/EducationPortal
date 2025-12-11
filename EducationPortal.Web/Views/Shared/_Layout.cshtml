@@ -1,6 +1,8 @@
-﻿@*
-    SB Admin 2 teması - ASP.NET Core uyumlu layout
-*@
+﻿@* SB Admin 2 teması - ASP.NET Core + Identity uyumlu layout *@
+@using Microsoft.AspNetCore.Identity
+@using EducationPortal.Web.Models
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
 
 <!DOCTYPE html>
 <html lang="tr">
@@ -17,7 +19,7 @@
     <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" />
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,700,800,900" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,700,800,900" rel="stylesheet" />
 
     <!-- SB Admin 2 CSS -->
     <link href="~/css/sb-admin-2.min.css" rel="stylesheet" />
@@ -37,7 +39,25 @@
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" asp-controller="Dashboard" asp-action="Index">
+            @{
+               
+                string brandController = "Home";
+                string brandAction = "Index";
+
+                if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                {
+                    brandController = "Admin";
+                    brandAction = "Index";
+                }
+                else if (User.Identity.IsAuthenticated && User.IsInRole("Student"))
+                {
+                    
+                    brandController = "StudentPanel";
+                    brandAction = "Index";
+                }
+            }
+            <a class="sidebar-brand d-flex align-items-center justify-content-center"
+               asp-controller="@brandController" asp-action="@brandAction">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
@@ -46,50 +66,117 @@
 
             <hr class="sidebar-divider my-0" />
 
-            <!-- Dashboard -->
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="Admin" asp-action="Index">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
+            @* ======================= ADMIN MENÜSÜ ======================= *@
+            @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Admin" asp-action="Index">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
 
-            <hr class="sidebar-divider" />
+                <hr class="sidebar-divider" />
 
-            <div class="sidebar-heading">
-                İçerikler
-            </div>
+                <div class="sidebar-heading">
+                    İçerikler
+                </div>
 
-            <!-- Menü Öğeleri -->
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="Course" asp-action="Index">
-                    <i class="fas fa-book"></i>
-                    <span>Kurslar</span>
-                </a>
-            </li>
+                <!-- Kurslar -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Course" asp-action="Index">
+                        <i class="fas fa-book"></i>
+                        <span>Kurslar</span>
+                    </a>
+                </li>
 
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="Student" asp-action="Index">
-                    <i class="fas fa-users"></i>
-                    <span>Öğrenciler</span>
-                </a>
-            </li>
+                <!-- Öğrenciler (admin için) -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Student" asp-action="Index">
+                        <i class="fas fa-users"></i>
+                        <span>Öğrenciler</span>
+                    </a>
+                </li>
 
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="Enrollment" asp-action="Index">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span>Kayıtlar</span>
-                </a>
-            </li>
+                <!-- Kayıtlar -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Enrollment" asp-action="Index">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Kayıtlar</span>
+                    </a>
+                </li>
 
-            <hr class="sidebar-divider d-none d-md-block" />
+                <hr class="sidebar-divider d-none d-md-block" />
+            }
+            @* ======================= ÖĞRENCİ MENÜSÜ ======================= *@
+            else if (User.Identity.IsAuthenticated && User.IsInRole("Student"))
+            {
+                <!-- Öğrenci Paneli -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="StudentPanel" asp-action="Index">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Panelim</span>
+                    </a>
+                </li>
 
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="Account" asp-action="Logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Çıkış Yap</span>
-                </a>
-            </li>
+                <hr class="sidebar-divider" />
+
+                <div class="sidebar-heading">
+                    Derslerim
+                </div>
+
+                <!-- Tüm Kurslar -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Course" asp-action="Index">
+                        <i class="fas fa-book-open"></i>
+                        <span>Tüm Kurslar</span>
+                    </a>
+                </li>
+
+                <!-- Kayıt Olduğum Kurslar (ileride doldurulabilir) -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="StudentCourses" asp-action="Index">
+                        <i class="fas fa-list-alt"></i>
+                        <span>Kayıt Olduğum Kurslar</span>
+                    </a>
+                </li>
+
+                <hr class="sidebar-divider d-none d-md-block" />
+            }
+            @* ======================= GİRİŞ YAPMAMIŞ KULLANICI ======================= *@
+            else
+            {
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index">
+                        <i class="fas fa-home"></i>
+                        <span>Ana Sayfa</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Account" asp-action="Login">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Giriş Yap</span>
+                    </a>
+                </li>
+
+                <hr class="sidebar-divider d-none d-md-block" />
+            }
+
+            @* ======================= ÇIKIŞ BUTONU (SADECE GİRİŞLİ KULLANICI) ======================= *@
+            @if (User.Identity.IsAuthenticated)
+            {
+                <li class="nav-item">
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="w-100">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="nav-link btn btn-link text-left text-white w-100">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Çıkış Yap</span>
+                        </button>
+                    </form>
+                </li>
+            }
 
         </ul>
         <!-- End Sidebar -->
@@ -103,9 +190,30 @@
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                         <i class="fa fa-bars"></i>
                     </button>
+
                     <span class="navbar-text font-weight-bold text-primary">
                         @ViewData["Title"]
                     </span>
+
+                    <ul class="navbar-nav ml-auto">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link">
+                                    <i class="fas fa-user-circle mr-1"></i>
+                                    @User.Identity.Name
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <span class="badge badge-primary ml-1">Admin</span>
+                                    }
+                                    else if (User.IsInRole("Student"))
+                                    {
+                                        <span class="badge badge-success ml-1">Öğrenci</span>
+                                    }
+                                </span>
+                            </li>
+                        }
+                    </ul>
                 </nav>
 
                 <!-- Page Content -->
@@ -141,5 +249,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>
-
 </html>

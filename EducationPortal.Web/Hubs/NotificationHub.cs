@@ -17,7 +17,7 @@ namespace EducationPortal.Web.Hubs
             await base.OnConnectedAsync();
         }
 
-        // İstersen Controller'dan da çağırabileceğin genel bir metod
+       
         public async Task SendDashboardInfo(string message)
         {
             await Clients.All.SendAsync("ReceiveNotification", message);

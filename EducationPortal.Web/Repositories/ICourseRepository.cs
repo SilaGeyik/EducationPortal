@@ -3,9 +3,12 @@ using EducationPortal.Web.Models;
 
 namespace EducationPortal.Web.Repositories
 {
-    public interface ICourseRepository : IGenericRepository<Course>
+    public interface ICourseRepository
     {
-        // Kursa özel ekstra işlemler gerekiyorsa buraya eklersin.
-        IEnumerable<Course> GetCoursesWithCategory();
+        List<Course> GetAll();
+        Course GetById(int id);
+        void Add(Course course);
+        void Update(Course course);
+        void Delete(int id);
     }
 }

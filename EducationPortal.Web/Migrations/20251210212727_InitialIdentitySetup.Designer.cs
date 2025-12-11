@@ -4,6 +4,7 @@ using EducationPortal.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EducationPortal.Web.Migrations
 {
     [DbContext(typeof(EducationContext))]
-    partial class EducationContextModelSnapshot : ModelSnapshot
+    [Migration("20251210212727_InitialIdentitySetup")]
+    partial class InitialIdentitySetup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,17 +201,17 @@ namespace EducationPortal.Web.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "67681f32-907c-4e44-8237-a1d31fc17d2c",
+                            ConcurrencyStamp = "6ba9a1d7-36c0-4698-9944-cb829c44ecfe",
                             Email = "admin@portal.com",
                             EmailConfirmed = false,
                             FullName = "Admin Kullanıcı",
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@PORTAL.COM",
                             NormalizedUserName = "ADMIN@PORTAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEMtOtHXX5j50Ui01XgbiprMGfoXmsXQev9D0WYU8B3gL4TExy267StYvHjvNPQb8xQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEImVfMi8/c3YJyYtmtLPMCpngs7xQg2bIAQnpVsXjgQlzo4pImA1nScgkt5uwQDu+w==",
                             PhoneNumberConfirmed = false,
                             Role = "Admin",
-                            SecurityStamp = "bbcc9ad9-349f-4600-ad57-832d2fde5998",
+                            SecurityStamp = "1c9c4afe-9eed-46cd-9ff4-061ac493455a",
                             TwoFactorEnabled = false,
                             UserName = "admin@portal.com"
                         });

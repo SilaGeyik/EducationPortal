@@ -1,7 +1,10 @@
-﻿using EducationPortal.Web.Data;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using EducationPortal.Web.Data;
+using EducationPortal.Web.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace EducationPortal.Web.Controllers
 {
@@ -15,14 +18,25 @@ namespace EducationPortal.Web.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        // ================== ÖĞRENCİ LİSTESİ (ADMIN) ==================
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
-            var students = _context.Users
+           
+            var students = await _context.Users
                 .Where(u => u.Role == "Student")
-                .ToList();
+                .Select(u => new StudentListViewModel
+                {
+                    UserId = u.Id,
+                    FullName = u.FullName,
+                    Email = u.Email,
+                    EnrolledCourseCount = _context.Enrollments
+                        .Count(e => e.UserId == u.Id)
+                })
+                .OrderBy(s => s.FullName)
+                .ToListAsync();
 
             return View(students);
         }
     }
 }
-

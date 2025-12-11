@@ -1,173 +1,152 @@
 ﻿using EducationPortal.Web.Data;
 using EducationPortal.Web.Models;
+using EducationPortal.Web.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace EducationPortal.Web.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class CourseController : Controller
     {
-        private readonly EducationContext _courseRepository
-            ;
+        private readonly ICourseRepository _courseRepository;
+        private readonly EducationContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public CourseController(EducationContext context)
+        public CourseController(
+            ICourseRepository courseRepository,
+            EducationContext context,
+            UserManager<User> userManager)
         {
-            _courseRepository = context;
+            _courseRepository = courseRepository;
+            _context = context;
+            _userManager = userManager;
         }
 
-       
-      
-        public IActionResult Index()
+        
+        private void FillCategoriesDropDown()
         {
-            var courses = _courseRepository.Courses
-                .Include(c => c.CourseCategory)
-                .ToList();
+            var categories = _context.CourseCategories.ToList();
+
+            ViewBag.CategoryList = new SelectList(
+                categories,
+                "CourseCategoryId", 
+                "Name");
+        }
+
+    
+        // LISTE (Admin + Student) 
+  
+        [Authorize(Roles = "Admin,Student")]
+        public async Task<IActionResult> Index()
+        {
+            var courses = _courseRepository.GetAll(); // Course + Category
+
+            var enrolledIds = new List<int>();
+
+            if (User.IsInRole("Student"))
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser != null)
+                {
+                    enrolledIds = await _context.Enrollments
+                        .Where(e => e.UserId == currentUser.Id)   
+                        .Select(e => e.CourseId)
+                        .ToListAsync();
+                }
+            }
+
+            ViewBag.EnrolledCourseIds = enrolledIds;
 
             return View(courses);
         }
 
        
-        [HttpGet]
-        public IActionResult Add()
-        {
-            ViewBag.Categories =
-                new SelectList(_courseRepository.CourseCategories, "CourseCategoryId", "Name");
-
-            return View();
-        }
-
+        // DETAY 
         
-        [HttpPost]
-        public IActionResult Add(Course course)
+        [Authorize(Roles = "Admin,Student")]
+        public IActionResult Details(int id)
         {
-            if (ModelState.IsValid)
-            {
-                _courseRepository.Courses.Add(course);
-                _courseRepository.SaveChanges();
-
-                TempData["Success"] = "Kurs başarıyla eklendi!";
-                return RedirectToAction("Index");
-            }
-
-            ViewBag.Categories =
-                new SelectList(_courseRepository.CourseCategories,
-                               "CourseCategoryId",
-                               "Name",
-                               course.CourseCategoryId);
-
-            TempData["Error"] = "Kurs eklenirken bir hata oluştu!";
-            return View(course);
-        }
-
-        
-        [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            var course = _courseRepository.Courses.Find(id);
-
+            var course = _courseRepository.GetById(id);
             if (course == null)
                 return NotFound();
 
-            ViewBag.Categories =
-                new SelectList(_courseRepository.CourseCategories,
-                               "CourseCategoryId",
-                               "Name",
-                               course.CourseCategoryId);
-
             return View(course);
         }
 
-        [HttpPost]
-        public IActionResult Edit(Course course)
+        // YENİ KURS EKLE 
+  
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public IActionResult Add()
         {
-            if (ModelState.IsValid)
-            {
-                _courseRepository.Courses.Update(course);
-                _courseRepository.SaveChanges();
+            FillCategoriesDropDown();
+            return View();
+        }
 
-                TempData["Success"] = "Kurs başarıyla güncellendi!";
-                return RedirectToAction("Index");
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Add(Course model)
+        {
+            if (!ModelState.IsValid)
+            {
+                FillCategoriesDropDown();
+                return View(model);
             }
 
-            ViewBag.Categories =
-                new SelectList(_courseRepository.CourseCategories,
-                               "CourseCategoryId",
-                               "Name",
-                               course.CourseCategoryId);
+            _courseRepository.Add(model);
+            return RedirectToAction(nameof(Index));
+        }
 
-            TempData["Error"] = "Kurs güncellenirken bir hata oluştu!";
+        // DÜZENLE
+        
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var course = _courseRepository.GetById(id);
+            if (course == null)
+                return NotFound();
+
+            FillCategoriesDropDown();
             return View(course);
         }
 
-        
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(Course model)
+        {
+            if (!ModelState.IsValid)
+            {
+                FillCategoriesDropDown();
+                return View(model);
+            }
+
+            _courseRepository.Update(model);
+            return RedirectToAction(nameof(Index));
+        }
+
+   
+        // SİL 
+       
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public IActionResult Delete(int id)
         {
-            try
-            {
-                var course = _courseRepository.Courses.Find(id);
+            var course = _courseRepository.GetById(id);
+            if (course == null)
+                return NotFound();
 
-                if (course == null)
-                    return Json(new
-                    {
-                        success = false,
-                        message = "Kurs bulunamadı"
-                    });
-
-                _courseRepository.Courses.Remove(course);
-                _courseRepository.SaveChanges();
-
-                return Json(new
-                {
-                    success = true,
-                    message = "Kurs başarıyla silindi"
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new
-                {
-                    success = false,
-                    message = "Silme işlemi hatalı: " + ex.Message
-                });
-            }
-        }
-
-
-        [HttpGet]
-        public IActionResult GetCourses()
-        {
-            try
-            {
-                var courses = _courseRepository.Courses
-                    .Include(c => c.CourseCategory)
-                    .Select(c => new
-                    {
-                        c.CourseId,
-                        c.Title,
-                        c.Credits,
-                        c.Instructor,
-                        CategoryName = c.CourseCategory.Name
-                    })
-                    .ToList();
-
-                return Json(new
-                {
-                    success = true,
-                    data = courses
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new
-                {
-                    success = false,
-                    message = "Liste yüklenirken hata oluştu: " + ex.Message
-                });
-            }
+            _courseRepository.Delete(id);
+            return Json(new { success = true });
         }
     }
 }

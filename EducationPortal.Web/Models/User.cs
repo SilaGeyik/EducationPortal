@@ -1,22 +1,19 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.AspNetCore.Identity; 
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EducationPortal.Web.Models
 {
-    public class User
+    
+    public class User : IdentityUser<int>
     {
-        public int UserId { get; set; }
-
+        
         public string FullName { get; set; } = null!;
 
-        public string Email { get; set; } = null!;
+        
+        public string Role { get; set; } = null!;
 
-        // Formdan gelen düz şifre – veritabanında KOLONU YOK
+        
         [NotMapped]
         public string? Password { get; set; }
-
-        // Veritabanındaki gerçek kolon
-        public string PasswordHash { get; set; } = null!; //Hash'li saklayacağım için şifreleri
-
-        public string Role { get; set; } = null!;
     }
 }

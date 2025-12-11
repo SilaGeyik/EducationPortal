@@ -1,24 +1,28 @@
-﻿@{
-    ViewData["Title"] = "Admin Dashboard";
+﻿@model EducationPortal.Web.ViewModels.AdminDashboardViewModel
+
+@{
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Yönetim Paneli";
 }
 
 <div class="container-fluid">
 
-    <h1 class="h3 mb-4 text-gray-800">Admin Dashboard</h1>
+    <h1 class="h3 mb-4 text-gray-800">Yönetim Paneli</h1>
 
     <div class="row">
 
-        <!-- Öğrenci Kartı -->
+        <!-- Toplam Öğrenci -->
         <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                TOPLAM ÖĞRENCİ
+                                Toplam Öğrenci
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.StudentCount</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.TotalStudents
+                            </div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
@@ -28,16 +32,18 @@
             </div>
         </div>
 
-        <!-- Kurs Kartı -->
+        <!-- Toplam Kurs -->
         <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                TOPLAM KURS
+                                Toplam Kurs
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.CourseCount</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.TotalCourses
+                            </div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-book fa-2x text-gray-300"></i>
@@ -47,16 +53,18 @@
             </div>
         </div>
 
-        <!-- Kayıt Kartı -->
+        <!-- Toplam Kayıt -->
         <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                TOPLAM KAYIT
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Toplam Kayıt
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.EnrollmentCount</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.TotalEnrollments
+                            </div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
@@ -67,4 +75,5 @@
         </div>
 
     </div>
+
 </div>

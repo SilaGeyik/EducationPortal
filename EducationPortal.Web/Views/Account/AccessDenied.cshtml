@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Erişim Engellendi";
+    Layout = "~/Views/Shared/_Layout.cshtml"; 
+
+<h2>Erişim Engellendi</h2>
+
+<p>Bu sayfaya erişim yetkiniz bulunmamaktadır.</p>
+
+@if (ViewData["ReturnUrl"] != null)
+{
+    <p>Dönmeye çalıştığınız sayfa: @ViewData["ReturnUrl"]</p>
+}
+
+<a asp-controller="Home" asp-action="Index">Ana sayfaya dön</a>

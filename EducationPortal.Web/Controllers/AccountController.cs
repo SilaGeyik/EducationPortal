@@ -1,126 +1,152 @@
-﻿using EducationPortal.Web.Data;
-using EducationPortal.Web.Helpers;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using EducationPortal.Web.Models;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace EducationPortal.Web.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly EducationContext _context;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
 
-        public AccountController(EducationContext context)
+        public AccountController(
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            RoleManager<IdentityRole<int>> roleManager)
         {
-            _context = context;
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _roleManager = roleManager;
         }
 
-        // LOGIN SAYFASI (GET)
         [HttpGet]
         public IActionResult Login()
         {
-            return View("~/Views/Account/Login.cshtml");
+            return View(); 
         }
 
-        // LOGIN (POST) - HEM HASH HEM PLAIN DESTEKLİ
+      
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(string email, string password, bool rememberMe)
         {
-            //Kullanıcıyı email ile bul
-            var user = _context.Users.FirstOrDefault(u => u.Email == email);
-
-            if (user == null)
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                TempData["Error"] = "Geçersiz email veya şifre!";
-                return View("~/Views/Account/Login.cshtml");
+                TempData["Error"] = "E-posta ve şifre zorunludur.";
+                return View();
             }
 
-            //Girilen şifrenin hash'ini hesapla
-            var enteredHash = PasswordHelper.Hash(password);
+            // Identity ile giriş denemesi
+            var result = await _signInManager.PasswordSignInAsync(
+                userName: email,          
+                password: password,
+                isPersistent: rememberMe,
+                lockoutOnFailure: false);
 
-            //İki ihtimal var:
-            //    - user.PasswordHash zaten hash'li → enteredHash ile eşit 
-            //    - user.PasswordHash eski düz metin → girilen password ile aynı 
-            bool isMatch =
-                user.PasswordHash == enteredHash ||   // yeni/hash'li kayıt
-                user.PasswordHash == password;        // eski/plain kayıt
-
-            if (!isMatch)
+            if (result.Succeeded)
             {
-                TempData["Error"] = "Geçersiz email veya şifre!";
-                return View("~/Views/Account/Login.cshtml");
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user != null)
+                {
+                    if (user.Role == "Admin")
+                        return RedirectToAction("Index", "Admin");
+
+                    if (user.Role == "Student")
+                        return RedirectToAction("Index", "StudentPanel");
+                }
+
+                
+                return RedirectToAction("Index", "StudentPanel");
             }
 
-            //Eğer eski kayıt ise (plain text), şimdi HASH'e çevir ve kaydet
-            if (user.PasswordHash == password)
-            {
-                user.PasswordHash = enteredHash;
-                _context.SaveChanges();
-            }
-
-            //Cookie'ye claim'leri yaz
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.FullName),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-            //Rol'e göre yönlendir
-            if (user.Role == "Admin")
-                return RedirectToAction("Index", "Admin");
-            else if (user.Role == "Student")
-                return RedirectToAction("Index", "StudentHome");
-
-            return RedirectToAction("Login");
+            TempData["Error"] = "Geçersiz e-posta veya şifre.";
+            return View();
         }
 
-        // LOGOUT
-        [HttpPost]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login");
-        }
-
-        // KAYIT SAYFASI (GET)
+        
         [HttpGet]
         public IActionResult Register()
         {
-            return View("~/Views/Account/Register.cshtml");
+            return View();
         }
 
-        // KAYIT (POST) - YENİ KULLANICI HER ZAMAN HASH'LENECEK
         [HttpPost]
-        public IActionResult Register(string fullName, string email, string password)
+        public async Task<IActionResult> Register(string fullName, string email, string password)
         {
-            var existingUser = _context.Users.FirstOrDefault(u => u.Email == email);
-            if (existingUser != null)
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                ViewBag.Error = "Bu e-posta adresi ile zaten bir hesap var.";
-                return View("~/Views/Account/Register.cshtml");
+                ModelState.AddModelError("", "E-posta ve şifre zorunludur.");
+                return View();
+            }
+
+            // Aynı e-posta var mı?
+            var existing = await _userManager.FindByEmailAsync(email);
+            if (existing != null)
+            {
+                ViewBag.Error = "Bu e-posta ile daha önce kayıt yapılmış.";
+                return View();
             }
 
             var user = new User
             {
                 FullName = fullName,
                 Email = email,
-                PasswordHash = PasswordHelper.Hash(password),
+                UserName = email,
                 Role = "Student"
             };
 
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            var result = await _userManager.CreateAsync(user, password);
 
-            TempData["Success"] = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
+            if (result.Succeeded)
+            {
+                // Student rolü yoksa oluştur
+                if (!await _roleManager.RoleExistsAsync("Student"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole<int>("Student"));
+                }
+
+                // Rol ekle
+                await _userManager.AddToRoleAsync(user, "Student");
+
+                // OTOMATİK LOGIN YOK
+                
+                ViewBag.Success = "Kayıt işlemi başarılı! Giriş yapabilirsiniz.";
+
+                // Form alanlarını boşalt
+                ModelState.Clear();
+
+                return View();   
+            }
+
+            // Hataları göster
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
+            return View();
+        }
+
+
+        // =====================================================
+        // LOGOUT
+        // =====================================================
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
             return RedirectToAction("Login");
+        }
+
+        // =====================================================
+        // ACCESS DENIED
+        // =====================================================
+        public IActionResult AccessDenied()
+        {
+            return View(); // Views/Account/AccessDenied.cshtml
         }
     }
 }
