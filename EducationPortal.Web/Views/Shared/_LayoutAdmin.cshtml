@@ -22,14 +22,9 @@
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    
-    <link rel="stylesheet" href="~/vendor/fontawesome-free/css/all.min.css" />
-    <link rel="stylesheet" href="~/css/sb-admin-2.min.css" />
 </head>
 
 <body id="page-top">
-
     <div id="wrapper">
 
         <!-- Sidebar -->
@@ -83,13 +78,15 @@
 
             <hr class="sidebar-divider d-none d-md-block" />
 
+            <!-- Sidebar Logout (POST) -->
             <li class="nav-item">
-                <a class="nav-link" asp-controller="Account" asp-action="Logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Çıkış Yap</span>
-                </a>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="m-0 p-0">
+                    <button type="submit" class="nav-link btn btn-link text-left" style="width:100%; color:#fff; text-decoration:none;">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Çıkış Yap</span>
+                    </button>
+                </form>
             </li>
-
         </ul>
         <!-- End of Sidebar -->
         <!-- Content Wrapper -->
@@ -107,7 +104,7 @@
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">
-                                    @User.Identity.Name
+                                    @User.Identity?.Name
                                 </span>
                                 <img class="img-profile rounded-circle"
                                      src="~/img/default-profile.png" style="width:40px; height:40px;">
@@ -121,21 +118,23 @@
                                     Profilim
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Çıkış Yap
-                                </a>
+
+                                <!-- Dropdown Logout (POST) -->
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Çıkış Yap
+                                    </button>
+                                </form>
                             </div>
                         </li>
                     </ul>
                 </nav>
                 <!-- End of Topbar -->
                 @RenderBody()
-
             </div>
         </div>
         <!-- End Content Wrapper -->
-
     </div>
     <!-- End Wrapper -->
     <!-- JS kütüphaneleri -->
@@ -164,17 +163,15 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            console.log("SignalR: bağlantı hazırlanıyor...");
-
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/notificationHub")
                 .withAutomaticReconnect()
                 .build();
 
             connection.on("ReceiveNotification", function (message) {
-                console.log("SignalR: Bildirim geldi ->", message);
 
                 var container = document.getElementById("notificationArea");
+                if (!container) return;
 
                 var alertDiv = document.createElement("div");
                 alertDiv.className = "alert alert-info alert-dismissible fade show mb-2";
@@ -188,17 +185,17 @@
                 container.appendChild(alertDiv);
 
                 setTimeout(function () {
-                    $(alertDiv).alert('close');
-                }, 5000);
+                    try { $(alertDiv).alert('close'); } catch (e) { }
+                }, 10000);
             });
 
             async function start() {
                 try {
                     await connection.start();
-                    console.log("SignalR: bağlantı kuruldu ✅");
+                    console.log("SignalR: bağlantı kuruldu");
                 } catch (err) {
-                    console.error("SignalR: bağlantı hatası ❌", err);
-                    setTimeout(start, 5000);
+                    console.error("SignalR: bağlantı hatası", err);
+                    setTimeout(start, 10000);
                 }
             }
 
@@ -207,7 +204,5 @@
     </script>
 
     @RenderSection("Scripts", required: false)
-
 </body>
 </html>
-

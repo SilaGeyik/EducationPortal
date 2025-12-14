@@ -5,23 +5,11 @@ namespace EducationPortal.Web.Hubs
 {
     public class NotificationHub : Hub
     {
-        // Her yeni bağlantı kurulduğunda çalışır
-        public override async Task OnConnectedAsync()
+        public override Task OnConnectedAsync()
         {
-            // Sadece bağlanan kullanıcıya mesaj
-            await Clients.Caller.SendAsync(
-                "ReceiveNotification",
-                "Yönetici paneline gerçek zamanlı bağlantı kuruldu."
-            );
-
-            await base.OnConnectedAsync();
-        }
-
-       
-        public async Task SendDashboardInfo(string message)
-        {
-            await Clients.All.SendAsync("ReceiveNotification", message);
+            // Admin rol/grup kontrolü yapmıyoruz.
+            // Çünkü admin panelde zaten bu layout çalışıyor.
+            return base.OnConnectedAsync();
         }
     }
 }
-

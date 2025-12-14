@@ -1,5 +1,5 @@
 ﻿using EducationPortal.Web.Data;
-using EducationPortal.Web.Hubs;   
+using EducationPortal.Web.Hubs;
 using EducationPortal.Web.Models;
 using EducationPortal.Web.Repositories;
 using Microsoft.AspNetCore.Identity;
@@ -34,12 +34,11 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 // ==================== SIGNALR =======================
-builder.Services.AddSignalR();  
+builder.Services.AddSignalR();
 
 // ==================== REPOSITORY / DİĞER SERVİSLER ==
 builder.Services.AddScoped<CourseRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
-
 
 builder.Services.AddSession();
 builder.Services.AddControllersWithViews();

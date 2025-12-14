@@ -1,47 +1,31 @@
 ﻿@model List<EducationPortal.Web.Models.ViewModels.StudentListViewModel>
 
 @{
-    ViewData["Title"] = "Öğrenci Listesi";
-    Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; 
+    ViewData["Title"] = "Öğrenciler";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Öğrenciler</h1>
+<h1 class="h3 mb-3 text-gray-800">Öğrenciler</h1>
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Sistemde Kayıtlı Öğrenciler</h6>
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Öğrenci Listesi</h6>
+
+        <div style="min-width: 320px;">
+            <select id="courseFilter" class="form-control">
+                <option value="0">Tüm Öğrenciler</option>
+                @foreach (var c in (IEnumerable<dynamic>)ViewBag.Courses)
+                {
+                    <option value="@c.CourseId">@c.Title</option>
+                }
+            </select>
+            <small class="text-muted">Kursa göre filtrele (AJAX)</small>
         </div>
+    </div>
 
-        <div class="card-body">
-            @if (Model == null || !Model.Any())
-            {
-                <div class="alert alert-info">
-                    Sistemde henüz öğrenci bulunmamaktadır.
-                </div>
-            }
-            else
-            {
-                <table class="table table-bordered table-hover">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Ad Soyad</th>
-                            <th>E-posta</th>
-                            <th>Kayıtlı Ders Sayısı</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var s in Model)
-                        {
-                            <tr>
-                                <td>@s.FullName</td>
-                                <td>@s.Email</td>
-                                <td>@s.EnrolledCourseCount</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
+    <div class="card-body">
+        <div class="table-responsive" id="studentTableContainer">
+            @Html.Partial("_StudentTable", Model)
         </div>
     </div>
 </div>
@@ -50,184 +34,22 @@
     <script>
         $(document).ready(function () {
 
-            // -----------------------
-            // ÖĞRENCİ EKLEME - AJAX
-            // -----------------------
-            $('#addStudentForm').on('submit', function (e) {
-                e.preventDefault();
-
-                var fullName = $('#fullName').val();
-                var email = $('#email').val();
-                var password = $('#password').val();
-
-                if (!fullName || !email || !password) {
-                    Swal.fire('Uyarı!', 'Tüm alanları doldurunuz!', 'warning');
-                    return;
-                }
-
-                var submitBtn = $(this).find('button[type="submit"]');
-                submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Ekleniyor...');
-                submitBtn.prop('disabled', true);
+            $("#courseFilter").on("change", function () {
+                const courseId = $(this).val();
 
                 $.ajax({
-                    url: '@Url.Action("AddStudentAjax", "Admin")',
-                    type: 'POST',
-                    data: {
-                        fullName: fullName,
-                        email: email,
-                        password: password
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            Swal.fire('Başarılı!', response.message, 'success');
-
-                            $('#addStudentForm')[0].reset();
-
-                            if ($('#studentsTable tbody tr td').length === 1 &&
-                                $('#studentsTable tbody tr td').attr('colspan')) {
-                                $('#studentsTable tbody').empty();
-                            }
-
-                            var newRow = `
-                                <tr id="student-${response.student.userId}">
-                                    <td>${$('#studentsTable tbody tr').length + 1}</td>
-                                    <td>${response.student.fullName}</td>
-                                    <td>${response.student.email}</td>
-                                    <td>
-                                        <span class="badge badge-success">Aktif</span>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning edit-student" data-id="${response.student.userId}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger delete-student" data-id="${response.student.userId}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
-
-                            $('#studentsTable tbody').prepend(newRow);
-                            updateRowNumbers();
-                        } else {
-                            Swal.fire('Hata!', response.message, 'error');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        Swal.fire('Hata!', 'İşlem sırasında bir hata oluştu: ' + error, 'error');
-                    },
-                    complete: function () {
-                        submitBtn.html('<i class="fas fa-plus me-1"></i>Ekle');
-                        submitBtn.prop('disabled', false);
-                    }
-                });
-            });
-
-            // -----------------------
-            // ÖĞRENCİ SİLME - AJAX
-            // -----------------------
-            $(document).on('click', '.delete-student', function () {
-                var studentId = $(this).data('id');
-                var studentName = $(this).closest('tr').find('td:eq(1)').text().trim();
-
-                Swal.fire({
-                    title: 'Emin misiniz?',
-                    text: `"${studentName}" adlı öğrenciyi silmek istediğinizden emin misiniz?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Evet, sil!',
-                    cancelButtonText: 'İptal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: '@Url.Action("DeleteStudentAjax", "Admin")',
-                            type: 'POST',
-                            data: { id: studentId },
-                            success: function (response) {
-                                if (response.success) {
-                                    Swal.fire('Silindi!', response.message, 'success');
-                                    $('#student-' + studentId).remove();
-                                    updateRowNumbers();
-                                } else {
-                                    Swal.fire('Hata!', response.message, 'error');
-                                }
-                            },
-                            error: function () {
-                                Swal.fire('Hata!', 'Silme işlemi sırasında bir hata oluştu.', 'error');
-                            }
-                        });
-                    }
-                });
-            });
-
-            // -----------------------
-            // ÖĞRENCİ DÜZENLE - MODAL
-            // -----------------------
-            $(document).on('click', '.edit-student', function () {
-                var studentId = $(this).data('id');
-                var row = $(this).closest('tr');
-
-                var fullName = row.find('td:eq(1)').text().trim();
-                var email = row.find('td:eq(2)').text().trim();
-
-                $('#editId').val(studentId);
-                $('#editFullName').val(fullName);
-                $('#editEmail').val(email);
-
-                $('#editStudentModal').modal('show');
-            });
-
-            // -----------------------
-            // ÖĞRENCİ GÜNCELLE - AJAX
-            // -----------------------
-            $('#saveEdit').on('click', function () {
-                var id = $('#editId').val();
-                var fullName = $('#editFullName').val();
-                var email = $('#editEmail').val();
-
-                if (!fullName || !email) {
-                    Swal.fire('Uyarı!', 'Ad Soyad ve E-posta zorunludur!', 'warning');
-                    return;
-                }
-
-                $.ajax({
-                    url: '@Url.Action("UpdateStudentAjax", "Admin")',
-                    type: 'POST',
-                    data: {
-                        id: id,
-                        fullName: fullName,
-                        email: email
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            Swal.fire('Başarılı!', response.message, 'success');
-
-                            // satırı güncelle
-                            var row = $('#student-' + id);
-                            row.find('td:eq(1)').text(fullName);
-                            row.find('td:eq(2)').text(email);
-
-                            $('#editStudentModal').modal('hide');
-                        } else {
-                            Swal.fire('Hata!', response.message || 'Güncelleme başarısız.', 'error');
-                        }
+                    url: "/Student/FilterByCourse",
+                    type: "GET",
+                    data: { courseId: courseId },
+                    success: function (html) {
+                        $("#studentTableContainer").html(html);
                     },
                     error: function () {
-                        Swal.fire('Hata!', 'Güncelleme sırasında bir hata oluştu.', 'error');
+                        Swal.fire("Hata", "Filtreleme sırasında hata oluştu.", "error");
                     }
                 });
             });
 
-            // -----------------------
-            // SIRA NUMARASI GÜNCELLE
-            // -----------------------
-            function updateRowNumbers() {
-                $('#studentsTable tbody tr').each(function (index) {
-                    $(this).find('td:first').text(index + 1);
-                });
-            }
         });
     </script>
 }

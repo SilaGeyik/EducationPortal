@@ -1,0 +1,30 @@
+﻿@model List<EducationPortal.Web.Models.ViewModels.StudentListViewModel>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Ad Soyad</th>
+            <th>Email</th>
+            <th>Kayıtlı Kurs Sayısı</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model == null || Model.Count == 0)
+        {
+            <tr>
+                <td colspan="3" class="text-center text-muted">Kayıt bulunamadı.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var s in Model)
+            {
+                <tr>
+                    <td>@s.FullName</td>
+                    <td>@s.Email</td>
+                    <td>@s.EnrolledCourseCount</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

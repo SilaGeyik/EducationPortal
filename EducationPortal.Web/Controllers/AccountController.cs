@@ -1,8 +1,10 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using EducationPortal.Web.Hubs;
 using EducationPortal.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace EducationPortal.Web.Controllers
 {
@@ -11,24 +13,26 @@ namespace EducationPortal.Web.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly IHubContext<NotificationHub> _hub;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            RoleManager<IdentityRole<int>> roleManager)
+            RoleManager<IdentityRole<int>> roleManager,
+            IHubContext<NotificationHub> hub)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _hub = hub;
         }
 
         [HttpGet]
         public IActionResult Login()
         {
-            return View(); 
+            return View();
         }
 
-      
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password, bool rememberMe)
         {
@@ -38,9 +42,8 @@ namespace EducationPortal.Web.Controllers
                 return View();
             }
 
-            // Identity ile giriş denemesi
             var result = await _signInManager.PasswordSignInAsync(
-                userName: email,          
+                userName: email,
                 password: password,
                 isPersistent: rememberMe,
                 lockoutOnFailure: false);
@@ -58,7 +61,6 @@ namespace EducationPortal.Web.Controllers
                         return RedirectToAction("Index", "StudentPanel");
                 }
 
-                
                 return RedirectToAction("Index", "StudentPanel");
             }
 
@@ -66,7 +68,6 @@ namespace EducationPortal.Web.Controllers
             return View();
         }
 
-        
         [HttpGet]
         public IActionResult Register()
         {
@@ -76,13 +77,14 @@ namespace EducationPortal.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(string fullName, string email, string password)
         {
-            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(fullName) ||
+                string.IsNullOrWhiteSpace(email) ||
+                string.IsNullOrWhiteSpace(password))
             {
-                ModelState.AddModelError("", "E-posta ve şifre zorunludur.");
+                ViewBag.Error = "Ad Soyad, e-posta ve şifre zorunludur.";
                 return View();
             }
 
-            // Aynı e-posta var mı?
             var existing = await _userManager.FindByEmailAsync(email);
             if (existing != null)
             {
@@ -108,20 +110,23 @@ namespace EducationPortal.Web.Controllers
                     await _roleManager.CreateAsync(new IdentityRole<int>("Student"));
                 }
 
-                // Rol ekle
+                // Identity rol ataması (kalsın)
                 await _userManager.AddToRoleAsync(user, "Student");
 
-                // OTOMATİK LOGIN YOK
-                
-                ViewBag.Success = "Kayıt işlemi başarılı! Giriş yapabilirsiniz.";
+                // Toplam öğrenci sayısı
+                var totalStudents = _userManager.Users.Count(u => u.Role == "Student");
 
-                // Form alanlarını boşalt
+                // ✅ Kesin çalışan bildirim (group yok)
+                await _hub.Clients.All.SendAsync(
+                    "ReceiveNotification",
+                    $"Toplam {totalStudents} öğrenci kayıt oldu."
+                );
+
+                ViewBag.Success = "Kayıt başarılı! Giriş yapabilirsiniz.";
                 ModelState.Clear();
-
-                return View();   
+                return View();
             }
 
-            // Hataları göster
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError("", error.Description);
@@ -130,10 +135,6 @@ namespace EducationPortal.Web.Controllers
             return View();
         }
 
-
-        // =====================================================
-        // LOGOUT
-        // =====================================================
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
@@ -141,12 +142,9 @@ namespace EducationPortal.Web.Controllers
             return RedirectToAction("Login");
         }
 
-        // =====================================================
-        // ACCESS DENIED
-        // =====================================================
         public IActionResult AccessDenied()
         {
-            return View(); // Views/Account/AccessDenied.cshtml
+            return View();
         }
     }
 }
