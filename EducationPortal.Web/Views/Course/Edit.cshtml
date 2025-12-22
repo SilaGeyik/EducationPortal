@@ -13,22 +13,29 @@
                 <div class="form-group">
                     <label>Ders Adı</label>
                     <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label>Kredi</label>
                     <input asp-for="Credits" class="form-control" />
+                    <span asp-validation-for="Credits" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label>Öğretim Üyesi</label>
                     <input asp-for="Instructor" class="form-control" />
+                    <span asp-validation-for="Instructor" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label>Kategori</label>
-                    <select asp-for="CourseCategoryId" class="form-control" asp-items="@(ViewBag.Categories)">
+                    <select asp-for="CourseCategoryId"
+                            class="form-control"
+                            asp-items="ViewBag.CategoryList">
+                        <option value="">-- Kategori seçiniz --</option>
                     </select>
+                    <span asp-validation-for="CourseCategoryId" class="text-danger"></span>
                 </div>
 
                 <button type="submit" class="btn btn-primary">Kaydet</button>

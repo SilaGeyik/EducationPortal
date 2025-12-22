@@ -29,20 +29,25 @@ namespace EducationPortal.Web.Controllers
             _userManager = userManager;
         }
 
-        
-        private void FillCategoriesDropDown()
+        /// <summary>
+        /// Kategori dropdown’unu doldurur.
+        /// selectedCategoryId verilirse, o kategori seçili gelir.
+        /// </summary>
+        private void FillCategoriesDropDown(int? selectedCategoryId = null)
         {
-            var categories = _context.CourseCategories.ToList();
+            var categories = _context.CourseCategories
+                                     .AsNoTracking()
+                                     .ToList();
 
             ViewBag.CategoryList = new SelectList(
                 categories,
-                "CourseCategoryId", 
-                "Name");
+                "CourseCategoryId",   // value
+                "Name",              // text
+                selectedCategoryId   // seçili olan
+            );
         }
 
-    
-        // LISTE (Admin + Student) 
-  
+        // LISTE (Admin + Student)
         [Authorize(Roles = "Admin,Student")]
         public async Task<IActionResult> Index()
         {
@@ -56,7 +61,7 @@ namespace EducationPortal.Web.Controllers
                 if (currentUser != null)
                 {
                     enrolledIds = await _context.Enrollments
-                        .Where(e => e.UserId == currentUser.Id)   
+                        .Where(e => e.UserId == currentUser.Id)
                         .Select(e => e.CourseId)
                         .ToListAsync();
                 }
@@ -67,9 +72,7 @@ namespace EducationPortal.Web.Controllers
             return View(courses);
         }
 
-       
-        // DETAY 
-        
+        // DETAY
         [Authorize(Roles = "Admin,Student")]
         public IActionResult Details(int id)
         {
@@ -80,13 +83,12 @@ namespace EducationPortal.Web.Controllers
             return View(course);
         }
 
-        // YENİ KURS EKLE 
-  
+        // YENİ KURS EKLE
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult Add()
         {
-            FillCategoriesDropDown();
+            FillCategoriesDropDown(); // dropdown dolu gelsin
             return View();
         }
 
@@ -95,9 +97,18 @@ namespace EducationPortal.Web.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Add(Course model)
         {
+            // Seçilen kategori gerçekten var mı?
+            bool categoryExists = _context.CourseCategories
+                .Any(c => c.CourseCategoryId == model.CourseCategoryId);
+
+            if (!categoryExists)
+            {
+                ModelState.AddModelError("CourseCategoryId", "Lütfen geçerli bir kategori seçiniz.");
+            }
+
             if (!ModelState.IsValid)
             {
-                FillCategoriesDropDown();
+                FillCategoriesDropDown(model.CourseCategoryId);
                 return View(model);
             }
 
@@ -106,7 +117,6 @@ namespace EducationPortal.Web.Controllers
         }
 
         // DÜZENLE
-        
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult Edit(int id)
@@ -115,7 +125,9 @@ namespace EducationPortal.Web.Controllers
             if (course == null)
                 return NotFound();
 
-            FillCategoriesDropDown();
+            // Mevcut kategorisi seçili gelsin
+            FillCategoriesDropDown(course.CourseCategoryId);
+
             return View(course);
         }
 
@@ -124,9 +136,18 @@ namespace EducationPortal.Web.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(Course model)
         {
+            // Seçilen kategori gerçekten var mı?
+            bool categoryExists = _context.CourseCategories
+                .Any(c => c.CourseCategoryId == model.CourseCategoryId);
+
+            if (!categoryExists)
+            {
+                ModelState.AddModelError("CourseCategoryId", "Lütfen geçerli bir kategori seçiniz.");
+            }
+
             if (!ModelState.IsValid)
             {
-                FillCategoriesDropDown();
+                FillCategoriesDropDown(model.CourseCategoryId);
                 return View(model);
             }
 
@@ -134,9 +155,7 @@ namespace EducationPortal.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-   
-        // SİL 
-       
+        // SİL
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public IActionResult Delete(int id)

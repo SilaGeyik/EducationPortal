@@ -104,19 +104,19 @@ namespace EducationPortal.Web.Controllers
 
             if (result.Succeeded)
             {
-                // Student rolü yoksa oluştur
+              
                 if (!await _roleManager.RoleExistsAsync("Student"))
                 {
                     await _roleManager.CreateAsync(new IdentityRole<int>("Student"));
                 }
 
-                // Identity rol ataması (kalsın)
+                
                 await _userManager.AddToRoleAsync(user, "Student");
 
-                // Toplam öğrenci sayısı
+               
                 var totalStudents = _userManager.Users.Count(u => u.Role == "Student");
 
-                // ✅ Kesin çalışan bildirim (group yok)
+               
                 await _hub.Clients.All.SendAsync(
                     "ReceiveNotification",
                     $"Toplam {totalStudents} öğrenci kayıt oldu."
